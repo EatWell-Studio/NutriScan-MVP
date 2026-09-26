@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "appTitle": "NutriScan",
+  "@appTitle": {
+    "description": "App name shown in the title bar and task switcher."
+  },
+  "homePlaceholder": "Scanning starts here.",
+  "@homePlaceholder": {
+    "description": "Placeholder on the home screen until the scan screen exists (P1-6)."
+  }
+}

@@ -1,0 +1,34 @@
+name: nutriscan
+description: "Offline-first food log with near-zero entry cost."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.4
+
+# Direct dependencies are pinned to exact versions and pubspec.lock is
+# committed (CONTRIBUTING §7). The Flutter version itself is pinned in the
+# repository's .fvmrc (ADR 0024).
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  camera: 0.12.1
+  drift: 2.35.0
+  drift_flutter: 0.3.1
+  flutter_riverpod: 3.4.3
+  # Must match the version flutter_localizations pins.
+  intl: 0.20.3
+  mobile_scanner: 7.4.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: 2.16.1
+  drift_dev: 2.35.0
+  flutter_lints: 6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
