@@ -32,4 +32,4 @@
 - [ ] If the drift schema changed: `schemaVersion` bumped, migration and migration test added
 - [ ] If PRD or DEV_PLAN changed: both the Chinese and English versions are updated
 - [ ] If dependencies were added: reason and license are stated above
-- [ ] Every commit has a correct prefix and passes the tests on its own
+- [ ] Every commit has a valid prefix, a `Refs:` line with the task ID, and passes the tests on its own
