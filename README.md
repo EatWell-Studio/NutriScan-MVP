@@ -77,7 +77,7 @@ Each source keeps its own license. Provenance lets data be filtered by source on
 - Product requirements: [English](./docs/PRD.en.md) · [中文](./docs/PRD.md)
 - Development plan: [English](./docs/DEV_PLAN.en.md) · [中文](./docs/DEV_PLAN.md)
 - [Architecture decision records](./docs/decisions/)
-- [Contributing](./CONTRIBUTING.md)
+- [Contributing](./CONTRIBUTING.md) (development setup in §9)
 
 ## License
 
