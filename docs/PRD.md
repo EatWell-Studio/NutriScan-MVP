@@ -1,0 +1,291 @@
+# 个人食物营养素数据库 APP — PRD
+
+2026-09-18 · Hannes
+
+> 2026-09-26 修订：识图模型由 Gemini Flash 免费层改为 Claude（第 4、6、7、9 节及 Sources），型号待拍板。
+
+## 1. 产品概述
+
+一个 offline-first 的个人饮食记录 App：扫码命中即记录，未命中拍营养成分表由 VLM 提取、用户确认后入库，顺带沉淀一份可开放的营养数据库。本文档整合了 2026-09-11 和 2026-09-12 两次讨论的全部决策，供 Claude Code 等 AI 工具作为开发上下文使用。
+
+**背景与痛点**：现有工具（FatSecret 等）的食品库经常查不到德国本地商品和亚洲商品，查不到就要对着包装手动录入。识图本身已是解决了的问题，真正的差异点是**把录入成本降到接近零**，而不是"再做一个更大的开放营养库"。
+
+**目标用户**：MVP 阶段只有开发者本人（Hannes，德国卡尔斯鲁厄，主要在 Rewe / Lidl / Kaufland / Alnatura 购物）。第二个真实用户出现是引入云同步的触发条件之一，不是 MVP 目标。
+
+**核心目标**
+
+1. 记录一件商品的耗时接近零：扫码命中 → 一步记录；未命中 → 拍照 → 确认 → 记录
+2. 在超市地下层无信号时主流程依然可用
+3. 每一条经用户确认的提取结果（照片 + raw JSON + 归一化记录）永不丢失、可回溯、可重跑
+4. 数据从第一天起带来源标注，将来能干净地对外开放或授权
+
+**非目标（MVP 明确不做）**
+
+- 账号体系、跨设备同步、共享库
+- 饮食规划、日历提醒集成、社交、贡献者激励机制
+- 盈利模式设计
+- 用 AI 识别条码（用原生扫码）
+- 预装 OFF 全量或裁剪 dump
+
+**开发方式**：周末项目，主要用 Claude Code 编写。
+
+## 2. 核心需求与功能列表
+
+MVP 只有四个功能，按优先级排列；F3 的优先级高于当日汇总页。
+
+| 编号 | 功能 | 说明 | 优先级 |
+| --- | --- | --- | --- |
+| F1 | 扫码记录 | 原生扫码（ML Kit / AVFoundation）→ 查本地 SQLite → 未命中查 OFF API → 命中则一步写入当日记录，并把商品永久缓存到本地 | P0 |
+| F2 | 拍照提取 + 确认 | 未命中 → 拍营养成分表 → VLM 返回带置信度的 JSON → 规则校验 → 确认/编辑界面 → 存库并记录 | P0 |
+| F3 | 原始数据出口 | 每条确认过的记录，把照片和 raw JSON 原样上传到 append-only 对象存储桶；离线时本地排队，下次联网补传 | P0 |
+| F4 | 当日摄入汇总 | 按天汇总热量与主要营养素 | P1 |
+| F5 | 基础食材查询 | 无条码的散装食材、自己做的饭：查本地打包的 BLS | P1 |
+
+**F1 查找顺序**：本地 SQLite → OFF API → 拍照。OFF 条目只有照片和名字、`nutriments` 为空的情况算未命中，走 F2。
+
+**F2 确认/编辑界面是整个 App 最重要的一屏**，同时解决数据质量、用户信任和错误反馈闭环三件事。要求：
+
+- 逐字段展示提取值，置信度低或校验失败的字段高亮，要求用户明确确认
+- 显示原始参考量（per 100g / per serving / 自定义 serving 文本）和归一化后的 per-100g 值
+- 用户可以修改任意字段；修改后重新跑校验
+- 用户确认前不写入商品库
+
+**规则校验（F2 内置，成本几乎为零）**
+
+- Atwater：蛋白质×4 + 碳水×4 + 脂肪×9 与标示热量偏差 > 15% → 标为可疑
+- 质量守恒：所有营养素质量之和 ≤ 100 g
+- 主要拦截目标：12 读成 1.2 这类 VLM 误读
+
+**降级行为**：任何外部依赖掉线，主流程都不能停。OFF 挂了退化成拍照；VLM 挂了退化成手动输入；桶挂了本地排队。
+
+## 3. 数据模型与数据来源
+
+存三层、不压成一层；schema 抄现成标准，不自己设计；每条记录从第一天起带 provenance。
+
+**三层存储（可回溯、可重跑）**
+
+```mermaid
+flowchart LR
+  A[原始照片] --> B[raw JSON<br/>逐字段置信度]
+  B --> C[归一化记录<br/>per 100g / 100ml]
+  C --> D[用户当日记录]
+```
+
+将来换模型时，用照片重跑得到新的 raw JSON，再重新归一化；三层都不能删。
+
+**归一化规则（真正的工程量，比识图难）**
+
+- 库里存归一化后的 per-100g / per-100ml，**同时保留原始参考量定义**（per serving、serving size 自由文本如 "1 cup (240ml)"、"约 3 块"）
+- 单位统一：kcal 与 kJ 并存；钠 ↔ 盐（盐 = 钠 × 2.5）；区分总糖与添加糖；膳食纤维是否计入碳水按来源法规标注
+- 德式标签特点：per 100g 排版、kJ/kcal 并列、"davon Zucker" / "davon gesättigte Fettsäuren" 缩进子项
+
+**核心实体**：商品（barcode、品牌、名称）→ 营养素记录（版本化，一个商品可有多个来源/多个版本）→ 用户记录（时间、份量、关联的营养素记录版本）。营养素字段命名采用 EuroFIR 标准代码（BLS 用的那套），并保留到 OFF 字段名和 USDA nutrient ID 的映射表。
+
+**数据来源（三层）**
+
+| 层 | 来源 | 许可 | 接入方式 | 备注 |
+| --- | --- | --- | --- | --- |
+| 条码商品 | [Open Food Facts](https://world.openfoodfacts.org/data) API | ODbL（share-alike） | 实时 API，每次调用对应一次真实扫码；命中结果永久缓存进本地 SQLite | 条款明确允许此用法；不要用 API 爬库。全量 dump 约 43 GB JSONL / 6.2 GB Parquet，MVP 不碰 |
+| 基础食材 / 菜品 | [BLS 4.0](https://blsdb.de/download)（Bundeslebensmittelschlüssel，Max Rubner-Institut） | CC BY 4.0，需署名 MRI | 打包进 App | 约 7 140 种食品、138 种营养素，EuroFIR 代码，2025-12 起免费开放；机构就在卡尔斯鲁厄 |
+| 备选基础食材 | USDA FoodData Central Foundation Foods | 公有领域 | 可选打包，约 29 MB | 优先级低于 BLS；Branded Foods（约 2.9 GB）只覆盖美/加/新西兰，对德国无用 |
+| 两者都没有 | 拍照 + VLM 提取 | 自有 | 见第 4 节 | 这是产品真正的差异点所在 |
+
+**provenance 字段（不可延后）**：每条营养素记录必须标明派生自 `off` / `bls` / `usda` / `vlm_user` 中的哪一个，以及来源版本与时间。三种许可传染性不同，混过一次就分不开，将来对外开放或 B2B 授权时靠这个字段区分。
+
+**本地库是长出来的，不是预装的**：人的饮食重复率极高，几十次扫码之后常买商品全在本地，离线可用由此实现，不需要预置 dump。
+
+## 4. 技术架构与技术栈决策
+
+MVP 没有任何需要维护的服务端状态：Flutter App + 本地 SQLite 作为权威，只连三个外部服务，其中两个只读。
+
+```mermaid
+flowchart LR
+  subgraph D[设备 · Flutter]
+    S[原生扫码] --> Q[本地 SQLite<br/>source of truth]
+    C[确认/编辑界面] --> Q
+    Q --> T[当日汇总]
+    B[打包的 BLS] --> Q
+  end
+  Q -->|只读| OFF[Open Food Facts API]
+  C -->|照片 → raw JSON| VLM[VLM 提取 API]
+  C -->|append-only| BK[对象存储桶<br/>照片 + raw JSON]
+```
+
+桶和 SQLite 之间没有连线是有意的：桶不是备份，是提取结果的原始流水，只 append、不查询、不参与同步。
+
+**技术栈决策**
+
+| 层 | 选择 | 理由 / 被否决项 |
+| --- | --- | --- |
+| 客户端 | Flutter | 跨平台、能上架双商店、相机与扫码生态成熟。否决原生（周末项目，上架两平台的收益大于性能）和 PWA（接 API 费劲） |
+| 条码 | ML Kit（Android）/ AVFoundation（iOS） | 快、准、免费；不用 AI |
+| 本地存储 | SQLite | 权威数据源；远端无论用什么都只是同步目标 |
+| 识图 | Claude（Anthropic Messages API），一次调用用结构化输出（`output_config.format` + JSON Schema）直接返回 JSON。默认型号 Claude Opus 5（`claude-opus-5`），阶段 0.5 与 Claude Sonnet 5（`claude-sonnet-5`）、Claude Haiku 4.5（`claude-haiku-4-5`）在评测集上对比后拍板 | 备选：Mistral La Plateforme（Pixtral，约 2 RPM 免费、EU 数据驻留，付费 OCR 约 4 美元/1000 页）。否决 Groq（文本优先）和 OpenRouter `:free`（best-effort、限流、名单常换）。Claude API 无免费层，按 token 计费（每百万 token 输入/输出：Opus 5 $5/$25、Sonnet 5 $2/$10、Haiku 4.5 $1/$5）；按 Anthropic 商业条款，API 数据默认不用于训练模型。Opus 5 / Sonnet 5 支持长边 2576px 的高分辨率图片输入，Haiku 4.5 上限 1568px。Anthropic 无官方 Dart SDK，App 端直接调 REST；批处理层用官方 Python SDK，重跑历史可走 Message Batches（半价） |
+| 原始数据出口 | 自有对象存储桶（不在 Supabase 内），append-only，文件名 `<barcode>_<timestamp>` | 唯一不可再生的资产；约二十行代码；将来迁移时它不用动 |
+| 云端（触发后） | Supabase，EU 区域（Frankfurt） | 托管 Postgres + Auth + RLS + Storage + 全文搜索。否决 Firebase：营养数据强关系型、需要模糊搜索、共享库读密集按读计费 |
+| 批处理（触发后） | FastAPI + Python | 位置在数据库**下方**做批处理（读桶、重跑 VLM、归一化写回），不是 App 与数据库之间的 API 层 |
+
+**引入 Supabase 的三个触发条件**（任一出现即接）：想在电脑上看数据或换手机继续用；出现第二个真实用户；需要服务端批量处理（例如换模型重跑历史数据）。
+
+**Supabase 使用约束（为迁移留门）**
+
+- 所有 Supabase 访问收敛在 Dart 侧单一 data access 层
+- 业务逻辑不写进 Edge Function、RLS policy 或 trigger；把它当普通 Postgres 用
+- 将来读放大时优先在前面挂只读 API + CDN、提供按日 dump，而不是换数据库（OFF 就是这么做的）
+
+**VLM 两条调用路径共享同一份 prompt 和输出 schema**：设备端实时调用与批处理层重跑必须得到相同结构，否则重跑出来的数据对不上。批处理需要断点续跑和只重跑子集（例如只重跑 Atwater 校验失败的那批）。
+
+**自部署备选**：小型专用文档模型（PaddleOCR-VL-1.6，0.9B，INT8 约 1 GB）在 OmniDocBench 上已超过大 VLM；路线为两段式：OCR 出表格结构 → 小文本模型或规则映射到 schema。等在意成本或隐私时再评估，用前先核对模型权重许可。
+
+## 5. 用户流程与界面要求
+
+主流程只有一条，命中时两步完成，未命中时四步完成；用户永远不需要手动搜索。
+
+```mermaid
+flowchart TD
+  A[打开 App → 扫码] --> B{本地 SQLite 命中?}
+  B -->|是| R[选份量 → 记录]
+  B -->|否| C{OFF API 命中<br/>且 nutriments 非空?}
+  C -->|是| K[缓存进本地] --> R
+  C -->|否 / 离线| P[拍营养成分表]
+  P --> V[VLM → raw JSON]
+  V --> X[规则校验]
+  X --> E[确认 / 编辑界面]
+  E -->|确认| W[写入商品库 + 上传桶] --> R
+  V -->|VLM 不可用| M[手动输入] --> E
+```
+
+**界面清单（MVP 共 4 屏）**
+
+| 屏 | 内容 | 关键要求 |
+| --- | --- | --- |
+| 扫码 | 全屏取景框，默认打开即扫 | 命中后 1 秒内给出反馈；离线时不阻塞 |
+| 确认/编辑 | 提取结果逐字段列表 + 原图缩略 | 可疑字段高亮并要求逐一确认；显示原始参考量与归一化值；改动后即时重跑校验 |
+| 份量记录 | 选择份量（g / ml / 份）与时间 | 默认值为该商品上次记录的份量 |
+| 当日汇总 | 热量与主要营养素合计，按记录列表 | 可删除或修改某条记录 |
+
+**确认/编辑界面细则**
+
+- 字段顺序固定为德国标签顺序：能量（kJ / kcal）、脂肪、其中饱和脂肪、碳水化合物、其中糖、蛋白质、盐；其余营养素折叠
+- 低置信度字段与校验失败字段用同一视觉语言标记，标注失败原因（例如"Atwater 偏差 23%"）
+- 用户不能跳过高亮字段直接确认
+- 允许把整张提取结果标记为"无法识别"，转手动输入
+
+**离线状态**：不做显眼的在线/离线指示器，只在需要网络的步骤（OFF 查询、VLM）失败时给出一句提示并降级；桶上传队列的状态放在设置页，不打扰主流程。
+
+## 6. 非功能需求
+
+离线可用是硬约束，其余都可以后补。
+
+| 类别 | 要求 |
+| --- | --- |
+| 离线 | 扫码、本地命中、记录、汇总在无网络时完全可用；拍照可先存本地，联网后再提取。远端只能是同步目标，不能是主流程的前置条件 |
+| 数据安全 | 确认过的照片和 raw JSON 必须在本地和桶各有一份；桶为 append-only，任何代码路径不得删除或覆盖桶内对象 |
+| 可回溯 | 每条归一化记录可追溯到它的 raw JSON、原始照片、模型名称与 prompt 版本 |
+| 隐私 | 照片里可能带有手、桌面、厨房环境；Claude API 按商业条款默认不用于训练，MVP 自用可接受。面向真实用户前核实 EU 境内推理方案（Claude API 的 `inference_geo` 数据驻留参数是否覆盖 EU，或经 Google Vertex AI 的 EU 区域调用 Claude），不满足则切 EU 境内供应商（Mistral）。云端一律选 EU 区域 |
+| 许可合规 | 每条记录带 provenance；对外输出时能按来源过滤；BLS 数据展示处署名 Max Rubner-Institut |
+| OFF 使用条款 | 1 次 API 调用 = 1 次真实扫码；绝不批量抓取；命中结果缓存以减少重复调用 |
+| 性能 | 本地命中反馈 < 1 秒；VLM 往返受第三方限制，界面需有明确的等待态且允许取消 |
+| 国际化 | 界面语言 MVP 为中文或德文其一（待定，见第 9 节）；标签语言先支持德文，schema 本身与语言无关 |
+| 平台 | Android 与 iOS 同一代码库；MVP 只需在开发者自己的设备上跑，上架不在 MVP 范围 |
+
+## 7. 开发阶段与里程碑
+
+第 0 阶段是验证，不写 App 代码；第 1 阶段是一个周末能完成的 MVP。
+
+| 阶段 | 内容 | 完成标志 |
+| --- | --- | --- |
+| 0 · 验证 | 拿 10 个常买的德国商品（含 Rewe / Lidl / Alnatura 自有品牌）直接访问 `https://world.openfoodfacts.org/api/v2/product/<barcode>`，统计 `nutriments` 填全的比例；下载 BLS zip 看营养素代码、参考量、菜品与食材的区分方式；拍 20–30 张真实超市营养成分表建评测集 | 有一份命中率数字、一份 BLS 字段笔记、一个评测集目录 |
+| 0.5 · 选模型 | 用评测集跑 Claude 候选型号（Opus 5 / Sonnet 5 / Haiku 4.5）与 Mistral，以 Atwater 偏差 > 15% 的比例自动打分，同时记录单次调用成本与延迟 | 选定 MVP 模型，评测脚本进 `schema/` 作为回归测试 |
+| 1 · MVP | F1 扫码记录 → F2 拍照提取 + 确认 → F3 桶出口 → F4 当日汇总；全部本地 SQLite | 自己连续用一周，日常商品基本在本地命中 |
+| 2 · 食材层 | F5：打包 BLS，支持无条码食材和自制饭菜 | 能记录一顿自己做的饭 |
+| 3 · 云同步（触发后） | Supabase EU + Dart data access 层 + 账号；SQLite 仍是本地权威 | 换手机后数据还在 |
+| 4 · 批处理（触发后） | FastAPI 读桶重跑、归一化写回；OFF dump 季度全量 + 每日增量流程 | 能一键换模型重跑全部历史 |
+| 5 · 对外开放 | 只读 API + CDN + 按日 dump；按 provenance 过滤输出 | 第一个第三方消费者 |
+
+**评测集的价值高于任何一次模型选择**：型号与价格每季度都在变，评测集不变，换模型时它就是回归测试。
+
+**OFF dump 流程（阶段 4 才做，App 不直接碰 dump）**：季度下载全量 dump，服务端用 Parquet + DuckDB 只读需要的列，筛选归一化后生成裁剪 SQLite 按版本放 CDN；每日拉 delta 跟进。delta 不含删除信息，所以季度全量不可省，否则会积累幽灵商品。
+
+## 8. 给 AI 辅助开发的约定
+
+单 repo，`schema/` 是营养素定义、prompt 和输出 JSON 结构的唯一物理位置，Dart 与 Python 都从它生成。
+
+**目录结构**
+
+```
+app/        Flutter 客户端
+api/        FastAPI 批处理层（阶段 4 前为空或只有骨架）
+supabase/   migrations、RLS、seed（阶段 3 起）
+schema/     营养素字段定义、VLM prompt、输出 JSON schema、codegen、评测集与评测脚本
+docs/       本 PRD、架构图、决策记录
+```
+
+**AI 工具在本项目中必须遵守的规则**
+
+1. 不新增第 2 份营养素字段定义。任何字段变更先改 `schema/`，再跑 codegen，禁止在 Dart 或 Python 里手写重复类型
+2. `schema/` 里的 prompt 和输出 JSON 结构带版本号；raw JSON 记录必须写入使用的版本
+3. 三层数据（照片 / raw JSON / 归一化记录）任何一层都不允许有删除代码路径；桶只 append
+4. 每张营养素表必须有 `provenance` 列且非空；写入时校验
+5. 主流程（扫码 → 记录）不得依赖网络；任何网络调用都要有超时和降级分支
+6. 条码识别只用 ML Kit / AVFoundation，不调用任何 AI 接口
+7. 业务逻辑只放在 Dart data access 层或 `api/`，不放进 Supabase Edge Function、RLS、trigger
+8. 改动 VLM prompt 或换模型前先跑 `schema/` 里的评测脚本，Atwater 失败率不得上升
+9. CI 用 path filter：改 `app/**` 才跑 Flutter 构建，改 `api/**` 才跑 pytest；改 `schema/**` 两者都跑
+10. 外部数据源的许可信息（OFF ODbL、BLS CC BY 4.0、USDA 公有领域）写在 `docs/` 并在代码注释里引用，不得混淆
+
+**编码规范**
+
+- Dart：官方 `flutter_lints`；数据库访问只经一个 repository 层；UI 不直接碰 SQLite
+- Python：Pydantic v2 模型作为 schema 源；`ruff` + `pytest`
+- 数值统一用小数存储，单位显式为字段名后缀（`energy_kcal`、`sodium_mg`、`salt_g`），不用裸数字
+- 提交信息标明改动层：`app:`、`api:`、`schema:`、`docs:`
+
+**MVP 验收标准**
+
+- [ ] 在无网络的情况下扫一件已缓存商品并记录，全程不出错、不等待
+- [ ] 扫一件 OFF 未收录的德国商品，拍照后 30 秒内进入确认界面，可疑字段被高亮
+- [ ] 手动把 12 改成 1.2 后，Atwater 校验立即标红
+- [ ] 确认后的照片和 raw JSON 出现在桶里，文件名含条码与时间戳
+- [ ] 同一商品第二次扫码直接本地命中
+- [ ] 当日汇总的热量等于各条记录按份量折算之和
+- [ ] 数据库中每条营养素记录的 `provenance` 均非空
+- [ ] 评测集脚本可一条命令跑完并输出各模型的 Atwater 失败率
+
+## 9. 未决问题与后续扩展
+
+以下几项讨论中没有定论，或是 Claude 的建议尚未经过验证，开始编码前需要拍板。
+
+**待拍板**
+
+- [ ] App 名称与包名
+- [ ] 界面语言：中文、德文还是英文优先
+- [ ] 对象存储桶用哪家（Cloudflare R2 / Backblaze B2 / Hetzner 等），要求 EU 区域、S3 兼容
+- [ ] BLS 4.0 是否作为营养素字段命名的主标准，还是以 OFF 字段名为主、EuroFIR 为映射（取决于阶段 0 看到的 BLS 字段结构）
+- [ ] 阶段 0 的 OFF 命中率结果——这个数字决定第一版更偏向 OFF 缓存还是 VLM 路径
+- [ ] 是否同时打包 USDA Foundation Foods 作为 BLS 的补充
+- [ ] 上架前是否要请人看一眼 ODbL share-alike 对本项目的实际影响
+- [ ] VLM 用哪个 Claude 型号：Opus 5（默认）/ Sonnet 5 / Haiku 4.5，阶段 0.5 按评测集准确率、单次成本、延迟定
+- [ ] 是否继续保留 Mistral 作为备选供应商（EU 数据驻留的退路）
+
+**明确推后的方向**（讨论中已有思路，但不进 MVP）
+
+| 方向 | 思路 | 触发时机 |
+| --- | --- | --- |
+| 饮食规划 + 提醒 | 通过 Google / Apple Calendar API 生成提醒项，业务逻辑与数据留在自己后端 | 记录功能稳定之后 |
+| 贡献者激励 | 不设计；上传是记录的副作用，靠流程快自然积累 | DAU 上规模后再议 |
+| 盈利模式 | 事实性数据不构成护城河；可能出口是 C 端记录/规划订阅或 B 端 API 与数据授权 | 覆盖率有价值之后 |
+| 拆分 repo | 数据 + API 与消费端 App 受众、发布节奏、许可都不同时再拆（`git filter-repo` 半小时） | 对外开放阶段 |
+| 自建 Postgres | 只有托管层级不够或合规合同硬要求时才迁；更可能的路径是 Supabase 前挂只读 API + CDN | 读放大出现后 |
+| 自部署 OCR | PaddleOCR-VL 类小模型两段式 | 在意成本或隐私时 |
+
+**Sources**
+
+- [Open Food Facts 数据下载与 API 条款](https://world.openfoodfacts.org/data)
+- [Reusing Open Food Facts Data](https://wiki.openfoodfacts.org/Reusing_Open_Food_Facts_Data)
+- [BLS 4.0 下载页（Max Rubner-Institut）](https://blsdb.de/download)
+- [USDA FoodData Central 下载](https://fdc.nal.usda.gov/download-datasets)
+- [Claude 模型与价格](https://platform.claude.com/docs/en/about-claude/models/overview)
+- [Claude 结构化输出](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+- [Claude Vision](https://platform.claude.com/docs/en/build-with-claude/vision)
+- 项目内对话：2026.09.11 APP 功能和技术栈整理；2026.09.12 架构设计
