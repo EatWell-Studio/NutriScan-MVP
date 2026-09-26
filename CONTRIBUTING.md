@@ -38,6 +38,8 @@ Configure in the GitHub repository settings (owner: DEV_PLAN task G-2):
 | Do not allow bypassing the above settings | On (admins cannot bypass either) |
 | Require review from Code Owners | **Off**, see below |
 | Repository merge button | "Allow rebase merging" only |
+| Always suggest updating pull request branches | On (the "Update branch" button on a PR; choose "Update with rebase") |
+| Automatically delete head branches | On |
 
 About CODEOWNERS: [CODEOWNERS](./.github/CODEOWNERS) is used to request reviewers automatically. "Require review from Code Owners" stays off because GitHub does not let authors approve their own PRs: when the PR author is the only owner of a directory (e.g. an owner changing their own `app/` subdirectory), the PR could never be merged. In a two-person team, "at least 1 approval" already guarantees that the other person reviews.
 
