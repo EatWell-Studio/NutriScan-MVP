@@ -2,9 +2,13 @@
 
 2026-09-18 · Hannes
 
+> 语言：中文（主版本）· [English](./PRD.en.md)。改动须在同一个 PR 里同步两个版本。
+
 > 修订记录
 > - 2026-09-26：识图模型由 Gemini Flash 免费层改为 Claude。
 > - 2026-09-26：改为两人协作，首个外部里程碑为 2026-10-14 演示；provenance 增加 `manual`；EU 境内推理需要服务端代理（D17）；型号 ID 与价格改由 `schema/eval/models.yaml` 统一定义。任务与排期见 [DEV_PLAN](./DEV_PLAN.md)，决策记录见 [docs/decisions/](./decisions/)。
+> - 2026-09-26：包名定为 `de.belvast.nutriscan`；演示先用 Android，iOS 随后补齐；Haiku 4.5 移出 VLM 候选；协作开发者计为第二个真实用户，云同步的触发条件已满足。
+> - 2026-09-26：开发期用 Claude 订阅（Claude Code），暂不开通 API；API 在 10/14 演示后视 Startup credits 再定（D21）。
 
 ## 1. 产品概述
 
@@ -12,7 +16,7 @@
 
 **背景与痛点**：现有工具（FatSecret 等）的食品库经常查不到德国本地商品和亚洲商品，查不到就要对着包装手动录入。识图本身已是解决了的问题，真正的差异点是**把录入成本降到接近零**，而不是"再做一个更大的开放营养库"。
 
-**目标用户**：MVP 阶段只有开发者本人（Hannes，德国卡尔斯鲁厄，主要在 Rewe / Lidl / Kaufland / Alnatura 购物）。第二个真实用户出现是引入云同步的触发条件之一，不是 MVP 目标（协作开发者自用算不算，待定，见 DEV_PLAN 7.2）。
+**目标用户**：MVP 阶段是 EatWell Studio 的两位开发者本人（Hannes，德国卡尔斯鲁厄，主要在 Rewe / Lidl / Kaufland / Alnatura 购物；以及协作开发者）。第二个真实用户出现是引入云同步的触发条件之一：协作开发者计为第二个真实用户（D19），因此该条件已满足，阶段 3 何时启动另行决定（见 DEV_PLAN 7.2）。
 
 **核心目标**
 
@@ -122,7 +126,7 @@ flowchart LR
 | 客户端 | Flutter | 跨平台、能上架双商店、相机与扫码生态成熟。否决原生（周末项目，上架两平台的收益大于性能）和 PWA（接 API 费劲） |
 | 条码 | ML Kit（Android）/ AVFoundation（iOS） | 快、准、免费；不用 AI |
 | 本地存储 | SQLite | 权威数据源；远端无论用什么都只是同步目标 |
-| 识图 | Claude（Anthropic Messages API），一次调用用[结构化输出](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)（`output_config.format` + JSON Schema）直接返回 JSON。候选型号：Opus 5.5（[官方推荐的默认起点](https://platform.claude.com/docs/en/models/overview)）、Sonnet 5、Haiku 4.5，阶段 0.5 评测后拍板（ADR 0002）。**型号 ID、价格、图片上限只在 `schema/eval/models.yaml` 定义**，本文不写具体数字 | 备选：Mistral La Plateforme（Pixtral，EU 数据驻留），只进评测脚本，是 EU 路线的第三顺位退路。否决 Groq（文本优先）和 OpenRouter `:free`（best-effort、限流、名单常换）。Claude API 无免费层，按 token 计费；按 Anthropic 商业条款，API 的输入输出[默认不用于训练](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training)。Anthropic 没有官方 Dart SDK，App 端直接调 HTTP；批处理层用官方 Python SDK，重跑历史可以走 Message Batches（半价） |
+| 识图 | Claude（Anthropic Messages API），一次调用用[结构化输出](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)（`output_config.format` + JSON Schema）直接返回 JSON。候选型号：Opus 5.5（[官方推荐的默认起点](https://platform.claude.com/docs/en/models/overview)）、Sonnet 5，阶段 0.5 评测后拍板（ADR 0002）。**型号 ID、价格、图片上限只在 `schema/eval/models.yaml` 定义**，本文不写具体数字 | 备选：Mistral La Plateforme（Pixtral，EU 数据驻留），只进评测脚本，是 EU 路线的第三顺位退路。否决 Groq（文本优先）和 OpenRouter `:free`（best-effort、限流、名单常换）。Claude API 无免费层，按 token 计费；按 Anthropic 商业条款，API 的输入输出[默认不用于训练](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training)。Anthropic 没有官方 Dart SDK，App 端直接调 HTTP；批处理层用官方 Python SDK，重跑历史可以走 Message Batches（半价）。Claude 订阅（Pro / Max）[不包含 API 额度](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console)；开发期暂不开通 API，演示前的缺口见 D21 |
 | 原始数据出口 | 自有对象存储桶（不在 Supabase 内），append-only，对象键以 `<barcode>_<timestamp>` 开头（无条码时的替代规则、确认结果的版本等见 ADR 0012） | 唯一不可再生的资产；约二十行代码；将来迁移时它不用动 |
 | 云端（触发后） | Supabase，EU 区域（Frankfurt） | 托管 Postgres + Auth + RLS + Storage + 全文搜索。否决 Firebase：营养数据强关系型、需要模糊搜索、共享库读密集按读计费 |
 | 批处理（触发后） | FastAPI + Python | 位置在数据库**下方**做批处理（读桶、重跑 VLM、归一化写回），不是 App 与数据库之间的 API 层 |
@@ -188,20 +192,20 @@ flowchart TD
 | 许可合规 | 每条记录带 provenance；对外输出时能按来源过滤；BLS 数据展示处署名 Max Rubner-Institut |
 | OFF 使用条款 | 1 次 API 调用 = 1 次真实扫码；绝不批量抓取；命中结果缓存以减少重复调用 |
 | 性能 | 本地命中反馈 < 1 秒；VLM 往返受第三方限制，界面需有明确的等待态且允许取消 |
-| 国际化 | 界面语言 MVP 为中文或德文其一（待定，见第 9 节）；标签语言先支持德文，schema 本身与语言无关 |
-| 平台 | Android 与 iOS 同一代码库；MVP 只需在开发者自己的设备上跑，上架不在 MVP 范围 |
+| 国际化 | 界面语言为中文与英文，两者同时提供（D2）；标签语言先支持德文，schema 本身与语言无关 |
+| 平台 | Android 与 iOS 同一代码库；MVP 只需在开发者自己的设备上跑，上架不在 MVP 范围。2026-10-14 的演示先用 Android，iOS 版本随后补齐（D20） |
 
 ## 7. 开发阶段与里程碑
 
-第 0 阶段是验证，不写 App 代码；第 1 阶段是一个周末能完成的 MVP。
+第 0 阶段是验证，不写 App 代码；第 1 阶段是 MVP，两人协作，中途以 2026-10-14 的演示为里程碑，排期见 DEV_PLAN。
 
 | 阶段 | 内容 | 完成标志 |
 | --- | --- | --- |
 | 0 · 验证 | 从购物小票里找 30 个以上常买的德国商品条码（含 Rewe / Lidl / Alnatura 自有品牌），直接访问 `https://world.openfoodfacts.org/api/v2/product/<barcode>`，统计 `nutriments` 填全的比例；下载 BLS zip 看营养素代码、参考量、菜品与食材的区分方式；拍 30 张以上营养成分表建评测集（超市或家中现有商品都可以），并手工录入真值 | 有一份命中率数字、一份 BLS 字段笔记、一个评测集目录 |
-| 0.5 · 选模型 | 用评测集跑 Claude 候选型号（Opus 5.5 / Sonnet 5 / Haiku 4.5，另跑 Fable 5.1 作准确率上限参照）与 Mistral。指标：Atwater 失败率、逐字段准确率、静默错误率、P50 / P90 延迟、单次成本。选型标准依次为：静默错误率 → P90 ≤ 25 s → 成本 | 选定 MVP 型号与 effort，评测脚本进 `schema/` 作为回归测试 |
+| 0.5 · 选模型 | 用评测集跑 Claude 候选型号（Opus 5.5 / Sonnet 5，另跑 Fable 5.1 作准确率上限参照）与 Mistral。指标：Atwater 失败率、逐字段准确率、静默错误率、P50 / P90 延迟、单次成本。选型标准依次为：静默错误率 → P90 ≤ 25 s → 成本 | 选定 MVP 型号与 effort，评测脚本进 `schema/` 作为回归测试 |
 | 1 · MVP | F1 扫码记录 → F2 拍照提取 + 确认 → F3 桶出口 → F4 当日汇总；全部本地 SQLite。中途里程碑：2026-10-14 演示（范围见 DEV_PLAN 4.2） | 自己连续用一周，日常商品基本在本地命中 |
 | 2 · 食材层 | F5：打包 BLS，支持无条码食材和自制饭菜 | 能记录一顿自己做的饭 |
-| 3 · 云同步（触发后） | Supabase EU + Dart data access 层 + 账号；SQLite 仍是本地权威 | 换手机后数据还在 |
+| 3 · 云同步（触发后） | 触发条件已满足（D19），启动时机待定。Supabase EU + Dart data access 层 + 账号；SQLite 仍是本地权威 | 换手机后数据还在 |
 | 4 · 批处理（触发后） | FastAPI 读桶重跑、归一化写回；OFF dump 季度全量 + 每日增量流程 | 能一键换模型重跑全部历史 |
 | 5 · 对外开放 | **前置条件：服务端代理里程碑（D17）已完成。** 只读 API + CDN + 按日 dump；按 provenance 过滤输出 | 第一个第三方消费者 |
 
@@ -264,7 +268,7 @@ docs/       本 PRD、架构图、决策记录
 
 决策编号与 ADR 对照见 [DEV_PLAN 第 1 节](./DEV_PLAN.md)。
 
-- [ ] App 名称与包名（D1：包名用 Hannes 拥有的域名反写，待填）
+- [x] App 名称与包名：`NutriScan`，`de.belvast.nutriscan`（D1）
 - [x] 界面语言：中文与英文同时做（D2）
 - [x] 对象存储桶：Backblaze B2 EU Central（D3，待 P0-6 实测确认）
 - [x] 营养素字段命名：内部主键用带单位后缀的 snake_case，EuroFIR / OFF / USDA 作映射（D4）
@@ -273,7 +277,11 @@ docs/       本 PRD、架构图、决策记录
 - [x] ODbL share-alike 的影响上架前再请人评估（D7）
 - [ ] VLM 用哪个 Claude 型号：阶段 0.5 评测后定（D14）
 - [x] Mistral 只进评测脚本，App 里演示前不实现（D15）
-- [ ] 代码许可证与贡献条款（D16，拍板前不合并代码 PR）
+- [ ] 代码许可证与贡献条款（D16，拍板前不合并代码 PR；代码归属已定为 EatWell Studio 两位成员共有，D18）
+- [x] 协作开发者计为第二个真实用户（D19）
+- [ ] 阶段 3（云同步）何时启动
+- [x] 演示平台：Android 先行，iOS 随后（D20）
+- [ ] 演示前的 API 额度：开发用 Claude 订阅已定，App 内提取与评测需要的 API 额度待定（D21）
 
 **明确推后的方向**（讨论中已有思路，但不进 MVP）
 
