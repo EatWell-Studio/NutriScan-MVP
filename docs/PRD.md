@@ -2,7 +2,9 @@
 
 2026-09-18 · Hannes
 
-> 2026-09-26 修订：识图模型由 Gemini Flash 免费层改为 Claude（第 4、6、7、9 节及 Sources），型号待拍板。
+> 修订记录
+> - 2026-09-26：识图模型由 Gemini Flash 免费层改为 Claude。
+> - 2026-09-26：改为两人协作，首个外部里程碑为 2026-10-14 演示；provenance 增加 `manual`；EU 境内推理需要服务端代理（D17）；型号 ID 与价格改由 `schema/eval/models.yaml` 统一定义。任务与排期见 [DEV_PLAN](./DEV_PLAN.md)，决策记录见 [docs/decisions/](./decisions/)。
 
 ## 1. 产品概述
 
@@ -10,7 +12,7 @@
 
 **背景与痛点**：现有工具（FatSecret 等）的食品库经常查不到德国本地商品和亚洲商品，查不到就要对着包装手动录入。识图本身已是解决了的问题，真正的差异点是**把录入成本降到接近零**，而不是"再做一个更大的开放营养库"。
 
-**目标用户**：MVP 阶段只有开发者本人（Hannes，德国卡尔斯鲁厄，主要在 Rewe / Lidl / Kaufland / Alnatura 购物）。第二个真实用户出现是引入云同步的触发条件之一，不是 MVP 目标。
+**目标用户**：MVP 阶段只有开发者本人（Hannes，德国卡尔斯鲁厄，主要在 Rewe / Lidl / Kaufland / Alnatura 购物）。第二个真实用户出现是引入云同步的触发条件之一，不是 MVP 目标（协作开发者自用算不算，待定，见 DEV_PLAN 7.2）。
 
 **核心目标**
 
@@ -27,7 +29,7 @@
 - 用 AI 识别条码（用原生扫码）
 - 预装 OFF 全量或裁剪 dump
 
-**开发方式**：周末项目，主要用 Claude Code 编写。
+**开发方式**：两人协作（公开仓库、单仓库），周末加工作日晚上，主要用 Claude Code 编写。协作规则见 [CONTRIBUTING.md](../CONTRIBUTING.md) 与 [CLAUDE.md](../CLAUDE.md)。首个外部里程碑：2026-10-14 在 Claude Founder House Stockholm 现场演示。
 
 ## 2. 核心需求与功能列表
 
@@ -90,7 +92,7 @@ flowchart LR
 | 备选基础食材 | USDA FoodData Central Foundation Foods | 公有领域 | 可选打包，约 29 MB | 优先级低于 BLS；Branded Foods（约 2.9 GB）只覆盖美/加/新西兰，对德国无用 |
 | 两者都没有 | 拍照 + VLM 提取 | 自有 | 见第 4 节 | 这是产品真正的差异点所在 |
 
-**provenance 字段（不可延后）**：每条营养素记录必须标明派生自 `off` / `bls` / `usda` / `vlm_user` 中的哪一个，以及来源版本与时间。三种许可传染性不同，混过一次就分不开，将来对外开放或 B2B 授权时靠这个字段区分。
+**provenance 字段（不可延后）**：每条营养素记录必须标明派生自 `off` / `bls` / `usda` / `vlm_user` / `manual`（用户手动输入，没有 VLM 提取）中的哪一个，以及来源版本与时间。三种许可传染性不同，混过一次就分不开，将来对外开放或 B2B 授权时靠这个字段区分。
 
 **本地库是长出来的，不是预装的**：人的饮食重复率极高，几十次扫码之后常买商品全在本地，离线可用由此实现，不需要预置 dump。
 
@@ -120,8 +122,8 @@ flowchart LR
 | 客户端 | Flutter | 跨平台、能上架双商店、相机与扫码生态成熟。否决原生（周末项目，上架两平台的收益大于性能）和 PWA（接 API 费劲） |
 | 条码 | ML Kit（Android）/ AVFoundation（iOS） | 快、准、免费；不用 AI |
 | 本地存储 | SQLite | 权威数据源；远端无论用什么都只是同步目标 |
-| 识图 | Claude（Anthropic Messages API），一次调用用结构化输出（`output_config.format` + JSON Schema）直接返回 JSON。默认型号 Claude Opus 5（`claude-opus-5`），阶段 0.5 与 Claude Sonnet 5（`claude-sonnet-5`）、Claude Haiku 4.5（`claude-haiku-4-5`）在评测集上对比后拍板 | 备选：Mistral La Plateforme（Pixtral，约 2 RPM 免费、EU 数据驻留，付费 OCR 约 4 美元/1000 页）。否决 Groq（文本优先）和 OpenRouter `:free`（best-effort、限流、名单常换）。Claude API 无免费层，按 token 计费（每百万 token 输入/输出：Opus 5 $5/$25、Sonnet 5 $2/$10、Haiku 4.5 $1/$5）；按 Anthropic 商业条款，API 数据默认不用于训练模型。Opus 5 / Sonnet 5 支持长边 2576px 的高分辨率图片输入，Haiku 4.5 上限 1568px。Anthropic 无官方 Dart SDK，App 端直接调 REST；批处理层用官方 Python SDK，重跑历史可走 Message Batches（半价） |
-| 原始数据出口 | 自有对象存储桶（不在 Supabase 内），append-only，文件名 `<barcode>_<timestamp>` | 唯一不可再生的资产；约二十行代码；将来迁移时它不用动 |
+| 识图 | Claude（Anthropic Messages API），一次调用用[结构化输出](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)（`output_config.format` + JSON Schema）直接返回 JSON。候选型号：Opus 5.5（[官方推荐的默认起点](https://platform.claude.com/docs/en/models/overview)）、Sonnet 5、Haiku 4.5，阶段 0.5 评测后拍板（ADR 0002）。**型号 ID、价格、图片上限只在 `schema/eval/models.yaml` 定义**，本文不写具体数字 | 备选：Mistral La Plateforme（Pixtral，EU 数据驻留），只进评测脚本，是 EU 路线的第三顺位退路。否决 Groq（文本优先）和 OpenRouter `:free`（best-effort、限流、名单常换）。Claude API 无免费层，按 token 计费；按 Anthropic 商业条款，API 的输入输出[默认不用于训练](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training)。Anthropic 没有官方 Dart SDK，App 端直接调 HTTP；批处理层用官方 Python SDK，重跑历史可以走 Message Batches（半价） |
+| 原始数据出口 | 自有对象存储桶（不在 Supabase 内），append-only，对象键以 `<barcode>_<timestamp>` 开头（无条码时的替代规则、确认结果的版本等见 ADR 0012） | 唯一不可再生的资产；约二十行代码；将来迁移时它不用动 |
 | 云端（触发后） | Supabase，EU 区域（Frankfurt） | 托管 Postgres + Auth + RLS + Storage + 全文搜索。否决 Firebase：营养数据强关系型、需要模糊搜索、共享库读密集按读计费 |
 | 批处理（触发后） | FastAPI + Python | 位置在数据库**下方**做批处理（读桶、重跑 VLM、归一化写回），不是 App 与数据库之间的 API 层 |
 
@@ -180,9 +182,9 @@ flowchart TD
 | 类别 | 要求 |
 | --- | --- |
 | 离线 | 扫码、本地命中、记录、汇总在无网络时完全可用；拍照可先存本地，联网后再提取。远端只能是同步目标，不能是主流程的前置条件 |
-| 数据安全 | 确认过的照片和 raw JSON 必须在本地和桶各有一份；桶为 append-only，任何代码路径不得删除或覆盖桶内对象 |
-| 可回溯 | 每条归一化记录可追溯到它的 raw JSON、原始照片、模型名称与 prompt 版本 |
-| 隐私 | 照片里可能带有手、桌面、厨房环境；Claude API 按商业条款默认不用于训练，MVP 自用可接受。面向真实用户前核实 EU 境内推理方案（Claude API 的 `inference_geo` 数据驻留参数是否覆盖 EU，或经 Google Vertex AI 的 EU 区域调用 Claude），不满足则切 EU 境内供应商（Mistral）。云端一律选 EU 区域 |
+| 数据安全 | 确认过的照片（原图与送给模型的派生图）和 raw JSON 必须在本地和桶各有一份；桶为 append-only，任何代码路径不得删除或覆盖桶内对象 |
+| 可回溯 | 每条归一化记录可追溯到它的 raw JSON、原始照片、送给模型的图片哈希、模型名称、effort 与 prompt 版本 |
+| 隐私 | 照片里可能带有手、桌面、厨房环境；照片一律去掉 EXIF（含 GPS）。Claude API 按商业条款默认不用于训练，MVP 期间两位开发者自用可接受。**Claude API 不支持 EU 境内推理**：`inference_geo` 只有 `global` 和 `us` 两个值（[数据驻留文档](https://platform.claude.com/docs/en/manage-claude/data-residency)）。EU 路线只剩两条：Google Vertex AI 的 EU 多区域（Opus 5.5 / Sonnet 5 在该区域可用，并支持结构化输出，需管理员在组织策略里开启，[Vertex AI 上的 Claude](https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai)）；Amazon Bedrock 的 EU 跨区域推理（Opus 5.5 / Sonnet 5 在 Bedrock 上不支持结构化输出，见结构化输出文档）。两条都要由服务端持有云平台凭证，因此**面向开发者以外的任何用户之前，必须完成服务端代理里程碑（D17）**：VLM 调用和桶上传都经无状态代理，密钥不落客户端，推理留在 EU。Mistral 是第三顺位退路。云端一律选 EU 区域 |
 | 许可合规 | 每条记录带 provenance；对外输出时能按来源过滤；BLS 数据展示处署名 Max Rubner-Institut |
 | OFF 使用条款 | 1 次 API 调用 = 1 次真实扫码；绝不批量抓取；命中结果缓存以减少重复调用 |
 | 性能 | 本地命中反馈 < 1 秒；VLM 往返受第三方限制，界面需有明确的等待态且允许取消 |
@@ -195,13 +197,13 @@ flowchart TD
 
 | 阶段 | 内容 | 完成标志 |
 | --- | --- | --- |
-| 0 · 验证 | 拿 10 个常买的德国商品（含 Rewe / Lidl / Alnatura 自有品牌）直接访问 `https://world.openfoodfacts.org/api/v2/product/<barcode>`，统计 `nutriments` 填全的比例；下载 BLS zip 看营养素代码、参考量、菜品与食材的区分方式；拍 20–30 张真实超市营养成分表建评测集 | 有一份命中率数字、一份 BLS 字段笔记、一个评测集目录 |
-| 0.5 · 选模型 | 用评测集跑 Claude 候选型号（Opus 5 / Sonnet 5 / Haiku 4.5）与 Mistral，以 Atwater 偏差 > 15% 的比例自动打分，同时记录单次调用成本与延迟 | 选定 MVP 模型，评测脚本进 `schema/` 作为回归测试 |
-| 1 · MVP | F1 扫码记录 → F2 拍照提取 + 确认 → F3 桶出口 → F4 当日汇总；全部本地 SQLite | 自己连续用一周，日常商品基本在本地命中 |
+| 0 · 验证 | 从购物小票里找 30 个以上常买的德国商品条码（含 Rewe / Lidl / Alnatura 自有品牌），直接访问 `https://world.openfoodfacts.org/api/v2/product/<barcode>`，统计 `nutriments` 填全的比例；下载 BLS zip 看营养素代码、参考量、菜品与食材的区分方式；拍 30 张以上营养成分表建评测集（超市或家中现有商品都可以），并手工录入真值 | 有一份命中率数字、一份 BLS 字段笔记、一个评测集目录 |
+| 0.5 · 选模型 | 用评测集跑 Claude 候选型号（Opus 5.5 / Sonnet 5 / Haiku 4.5，另跑 Fable 5.1 作准确率上限参照）与 Mistral。指标：Atwater 失败率、逐字段准确率、静默错误率、P50 / P90 延迟、单次成本。选型标准依次为：静默错误率 → P90 ≤ 25 s → 成本 | 选定 MVP 型号与 effort，评测脚本进 `schema/` 作为回归测试 |
+| 1 · MVP | F1 扫码记录 → F2 拍照提取 + 确认 → F3 桶出口 → F4 当日汇总；全部本地 SQLite。中途里程碑：2026-10-14 演示（范围见 DEV_PLAN 4.2） | 自己连续用一周，日常商品基本在本地命中 |
 | 2 · 食材层 | F5：打包 BLS，支持无条码食材和自制饭菜 | 能记录一顿自己做的饭 |
 | 3 · 云同步（触发后） | Supabase EU + Dart data access 层 + 账号；SQLite 仍是本地权威 | 换手机后数据还在 |
 | 4 · 批处理（触发后） | FastAPI 读桶重跑、归一化写回；OFF dump 季度全量 + 每日增量流程 | 能一键换模型重跑全部历史 |
-| 5 · 对外开放 | 只读 API + CDN + 按日 dump；按 provenance 过滤输出 | 第一个第三方消费者 |
+| 5 · 对外开放 | **前置条件：服务端代理里程碑（D17）已完成。** 只读 API + CDN + 按日 dump；按 provenance 过滤输出 | 第一个第三方消费者 |
 
 **评测集的价值高于任何一次模型选择**：型号与价格每季度都在变，评测集不变，换模型时它就是回归测试。
 
@@ -239,7 +241,9 @@ docs/       本 PRD、架构图、决策记录
 - Dart：官方 `flutter_lints`；数据库访问只经一个 repository 层；UI 不直接碰 SQLite
 - Python：Pydantic v2 模型作为 schema 源；`ruff` + `pytest`
 - 数值统一用小数存储，单位显式为字段名后缀（`energy_kcal`、`sodium_mg`、`salt_g`），不用裸数字
-- 提交信息标明改动层：`app:`、`api:`、`schema:`、`docs:`
+- 提交信息标明改动层：`app:`、`api:`、`schema:`、`docs:`、`ci:`
+
+**协作**：分支、PR、review、合并方式见 [CONTRIBUTING.md](../CONTRIBUTING.md)；Claude Code 的会话规则见 [CLAUDE.md](../CLAUDE.md)。型号 ID 与价格只在 `schema/eval/models.yaml` 定义一次。
 
 **MVP 验收标准**
 
@@ -258,15 +262,18 @@ docs/       本 PRD、架构图、决策记录
 
 **待拍板**
 
-- [ ] App 名称与包名
-- [ ] 界面语言：中文、德文还是英文优先
-- [ ] 对象存储桶用哪家（Cloudflare R2 / Backblaze B2 / Hetzner 等），要求 EU 区域、S3 兼容
-- [ ] BLS 4.0 是否作为营养素字段命名的主标准，还是以 OFF 字段名为主、EuroFIR 为映射（取决于阶段 0 看到的 BLS 字段结构）
-- [ ] 阶段 0 的 OFF 命中率结果——这个数字决定第一版更偏向 OFF 缓存还是 VLM 路径
-- [ ] 是否同时打包 USDA Foundation Foods 作为 BLS 的补充
-- [ ] 上架前是否要请人看一眼 ODbL share-alike 对本项目的实际影响
-- [ ] VLM 用哪个 Claude 型号：Opus 5（默认）/ Sonnet 5 / Haiku 4.5，阶段 0.5 按评测集准确率、单次成本、延迟定
-- [ ] 是否继续保留 Mistral 作为备选供应商（EU 数据驻留的退路）
+决策编号与 ADR 对照见 [DEV_PLAN 第 1 节](./DEV_PLAN.md)。
+
+- [ ] App 名称与包名（D1：包名用 Hannes 拥有的域名反写，待填）
+- [x] 界面语言：中文与英文同时做（D2）
+- [x] 对象存储桶：Backblaze B2 EU Central（D3，待 P0-6 实测确认）
+- [x] 营养素字段命名：内部主键用带单位后缀的 snake_case，EuroFIR / OFF / USDA 作映射（D4）
+- [ ] 阶段 0 的 OFF 命中率结果（D5：阈值不变，样本 30 个以上条码）
+- [x] 不打包 USDA Foundation Foods（D6）
+- [x] ODbL share-alike 的影响上架前再请人评估（D7）
+- [ ] VLM 用哪个 Claude 型号：阶段 0.5 评测后定（D14）
+- [x] Mistral 只进评测脚本，App 里演示前不实现（D15）
+- [ ] 代码许可证与贡献条款（D16，拍板前不合并代码 PR）
 
 **明确推后的方向**（讨论中已有思路，但不进 MVP）
 
@@ -285,7 +292,10 @@ docs/       本 PRD、架构图、决策记录
 - [Reusing Open Food Facts Data](https://wiki.openfoodfacts.org/Reusing_Open_Food_Facts_Data)
 - [BLS 4.0 下载页（Max Rubner-Institut）](https://blsdb.de/download)
 - [USDA FoodData Central 下载](https://fdc.nal.usda.gov/download-datasets)
-- [Claude 模型与价格](https://platform.claude.com/docs/en/about-claude/models/overview)
+- [Claude 模型概览](https://platform.claude.com/docs/en/models/overview)、[价格](https://platform.claude.com/docs/en/about-claude/pricing)
 - [Claude 结构化输出](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
-- [Claude Vision](https://platform.claude.com/docs/en/build-with-claude/vision)
+- [Claude Vision](https://platform.claude.com/docs/en/build-with-claude/vision)、[effort](https://platform.claude.com/docs/en/build-with-claude/effort)
+- [Claude API 数据驻留](https://platform.claude.com/docs/en/manage-claude/data-residency)
+- [Vertex AI 上的 Claude](https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai)、[Amazon Bedrock 上的 Claude](https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock)
+- [Anthropic：API 数据是否用于训练](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training)
 - 项目内对话：2026.09.11 APP 功能和技术栈整理；2026.09.12 架构设计
