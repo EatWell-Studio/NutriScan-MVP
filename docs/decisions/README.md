@@ -28,8 +28,7 @@ Open an ADR PR before writing code for any new design decision, and start coding
 | [0018](./0018-collaborator-is-second-user.md) | D19 The collaborator counts as the second real user | Accepted |
 | [0019](./0019-android-first-demo.md) | D20 Android-first demo, iOS afterwards | Accepted |
 | [0020](./0020-claude-access.md) | D21 How we use Claude: subscriptions for development, API later | Accepted (development); API access open |
-
-Still open (an ADR follows once decided): D16 (code license and contribution terms).
+| [0021](./0021-mit-license-for-mvp.md) | D16 MIT license for the MVP phase | Accepted |
 
 ## Template
 

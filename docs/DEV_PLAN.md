@@ -1,6 +1,6 @@
 # NutriScan MVP — 开发计划
 
-2026-09-26 · v0.3（两人协作版）
+2026-09-26 · v0.4（两人协作版）
 
 > 语言：中文（主版本）· [English](./DEV_PLAN.en.md)。改动须在同一个 PR 里同步两个版本。
 
@@ -31,14 +31,14 @@
 | D13 | 密钥 | 启用 API 时（D21）：专用 Anthropic 工作区 + 工作区月度上限；每人各自的 key。现在就适用：`secrets.example.json`；密码管理器；CI 跑 gitleaks | 已定 | [0014](./decisions/0014-secrets-and-api-keys.md) |
 | D14 | VLM 型号 | 阶段 0.5 评测后定。候选：Opus 5.5 / Sonnet 5（Haiku 4.5 已移出候选）；Fable 5.1 只作准确率上限参照。标准依次为：静默错误率 → P90 ≤ 25 s → 成本 | 流程已定，**型号待评测** | [0002](./decisions/0002-vlm-model-selection.md) |
 | D15 | Mistral | 只进评测脚本，App 里演示前不实现；EU 退路中排第三 | 已定 | [0003](./decisions/0003-mistral-eval-only.md) |
-| D16 ★ | 代码许可证 + 贡献条款 | 方案对比见第 7.3 节，由两人共同拍板。**拍板前不合并任何代码 PR**。代码归属已定（D18） | **待定** | — |
+| D16 | 代码许可证 + 贡献条款 | MVP 阶段用 MIT，保证最大限度的编码自由；MVP 阶段不要求 DCO 或 CLA。代码归属见 D18 | 已定 | [0021](./decisions/0021-mit-license-for-mvp.md) |
 | D17 | 服务端代理里程碑 | EU 境内推理（Vertex AI EU）与"密钥不落客户端"合并为同一个里程碑，是任何对外分发和阶段 5 的前置条件 | 已定 | [0015](./decisions/0015-server-proxy-milestone.md) |
 | D18 | 代码归属 | 代码归 EatWell Studio 的两位成员共同所有 | 已定 | [0017](./decisions/0017-code-ownership.md) |
 | D19 | 协作者是否算"第二个真实用户" | 算。PRD 中引入云同步（阶段 3）的触发条件因此已满足，启动时机待定（7.2） | 已定 | [0018](./decisions/0018-collaborator-is-second-user.md) |
 | D20 | 演示平台 | 10/14 演示用 Android；iOS 版本演示后补齐 | 已定 | [0019](./decisions/0019-android-first-demo.md) |
 | D21 ★ | Claude 使用方式 | **开发**（Claude Code）：Hannes 用自己的 Claude Max 订阅，协作者用赠送的免费试用周卡。**API**：10/14 演示后若拿到 Startup 免费 credits 再考虑。订阅不含 API 额度，而 App 内提取和评测脚本都要调 API，演示前怎么办见 7.2 | 开发部分已定；**API 部分待定** | [0020](./decisions/0020-claude-access.md) |
 
-★ = 阻塞代码 PR 的合并，越早定越好。
+★ = 阻塞关键任务，越早定越好。
 
 ---
 
@@ -294,7 +294,7 @@ Claude 结构化输出的限制（[structured outputs 文档](https://platform.c
 
 ```mermaid
 flowchart LR
-  G1[G-1 拍板 D16 与分工] --> P11[P1-1 骨架]
+  G1[G-1 拍板分工] --> P11[P1-1 骨架]
   G1 --> C1[C-1 nutrients.yaml]
   C1 --> C2[C-2 VLM 输出 schema]
   C3[C-3 models.yaml] --> C4
@@ -335,7 +335,7 @@ flowchart LR
 
 | 任务 | 内容 | 负责 | 依赖 | 估时 |
 | --- | --- | --- | --- | --- |
-| G-1 | 拍板 D16 与分工（7.2 节） | 两人 | — | 1+1 |
+| G-1 | 拍板分工（7.2 节；D16 已定） | 两人 | — | 1+1 |
 | G-2 | GitHub：按 CONTRIBUTING 的表设置分支保护与 rebase-only；为每个任务建 issue 并建 Project 看板；分工定下后更新 CODEOWNERS | 待定 | G-1 | 1.5 |
 | G-3 | 开发工具：Hannes 用 Claude Max；协作者激活试用周卡（7 天有效，按开工时间激活，并提前想好到期后怎么办）。API 启用时（D21）再建专用工作区、设月度上限、每人发一把 key | 两人 | — | 0.5 |
 
@@ -344,7 +344,7 @@ flowchart LR
 | 任务 | 内容 | 负责 | 依赖 | 估时 |
 | --- | --- | --- | --- | --- |
 | P0-1 | 从购物小票里整理 30 个以上条码（含 Rewe / Lidl / Kaufland / Alnatura 自有品牌与亚洲商品） | 待定 | — | 1 |
-| P0-2 | `schema/tools/off_probe.py` 统计命中率，写 `docs/notes/off-hit-rate.md`；顺带挑出演示用的"OFF 命中"与"OFF 未收录"商品 | 待定 | P0-1、D16 | 1.5 |
+| P0-2 | `schema/tools/off_probe.py` 统计命中率，写 `docs/notes/off-hit-rate.md`；顺带挑出演示用的"OFF 命中"与"OFF 未收录"商品 | 待定 | P0-1 | 1.5 |
 | P0-3 | BLS 字段笔记 | 待定 | — | **演示后** |
 | P0-4 | 评测照片 30 张以上，**超市或家中现有商品都可以**，两人各拍一半；覆盖 per 100g / per serving 两列、kJ/kcal 并列、反光、弯曲、小字，德文以外至少 3 张；入库前去 EXIF | 两人 | — | 1.5+1.5 |
 | P0-5 | 各自为自己拍的那一半录入真值（七项核心字段 + 参考量） | 两人 | P0-4 | 1.5+1.5 |
@@ -366,8 +366,8 @@ flowchart LR
 
 | 任务 | 内容 | 负责 | 依赖 | 估时 |
 | --- | --- | --- | --- | --- |
-| P1-1 | `flutter create`，包名 `de.belvast.nutriscan`（D1）；`flutter_lints`、Riverpod、drift、`mobile_scanner`、`camera`；ARB 中英两份；`secrets.example.json`（含 `contributor` 字段，值为 GitHub 用户名；`.gitignore` 已在仓库根目录）；2 节的目录结构。演示前只调通 Android | 待定 | D16 | 3 |
-| P1-2 | 最简 CI（一个 workflow）：`flutter analyze && flutter test`、`ruff && pytest`、codegen diff、gitleaks、提交信息前缀检查（D16 选了 DCO 的话也查 sign-off） | 待定 | P1-1 | 2.5 |
+| P1-1 | `flutter create`，包名 `de.belvast.nutriscan`（D1）；`flutter_lints`、Riverpod、drift、`mobile_scanner`、`camera`；ARB 中英两份；`secrets.example.json`（含 `contributor` 字段，值为 GitHub 用户名；`.gitignore` 已在仓库根目录）；2 节的目录结构。演示前只调通 Android | 待定 | — | 3 |
+| P1-2 | 最简 CI（一个 workflow）：`flutter analyze && flutter test`、`ruff && pytest`、codegen diff、gitleaks、提交信息前缀检查 | 待定 | P1-1 | 2.5 |
 
 #### 线 A：schema、VLM、评测、确认屏
 
@@ -490,12 +490,13 @@ flowchart LR
 
 | # | 事项 | 说明 | 截止 |
 | --- | --- | --- | --- |
-| 1 | **D16 代码许可证 + 贡献条款** | 见 7.3。代码归属已定为两位成员共有（D18）；仓库里现有的 MIT LICENSE 版权行写的是 "EatWell Studio"，定许可证时一并改成与归属一致的写法 | 第一个代码 PR 合并之前 |
-| 2 | **分工** | 两条线、共享契约（C-1 ～ C-5）的作者、各任务负责人；定下后填入 4.4 的"负责"列，并在 CODEOWNERS 里按目录细分 owner | 契约开工之前 |
-| 3 | **阶段 3（云同步）何时启动** | D19 使 PRD 的触发条件已满足。建议演示之后再单独规划，演示前不动。两位都是开发者，所以服务端代理里程碑（D17）并未因此触发 | 演示后 |
-| 4 | **演示前的 API 缺口**（D21） | Claude 订阅[不包含 API 与 Console 的使用额度](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console)，而 App 内的 Claude 提取（演示路线 3）和评测脚本（P05-4）都要调 Messages API。可选：**A.** 现在在 Console 小额预付，只用于评测、调试和演示；按 `models.yaml` 的价格粗算，一次完整评测约十几美元，演示前合计约几十美元；演示后有 credits 再切换。**B.** 演示前不调 API：演示路线 3 改为手动输入加录屏，评测和选型推到演示后，演示核心会缺失。**C.** 评测脚本改用 Claude Agent SDK，走 Max 订阅附带的[Agent SDK 月度额度](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan)（面向个人实验）；但它的调用路径与 App 的 Messages API 不同，结果只能粗测，不能作为 ADR 0002 的依据，App 本身仍然需要 API | P05-4、P1-11 开工之前 |
+| 1 | **分工** | 两条线、共享契约（C-1 ～ C-5）的作者、各任务负责人；定下后填入 4.4 的"负责"列，并在 CODEOWNERS 里按目录细分 owner | 契约开工之前 |
+| 2 | **阶段 3（云同步）何时启动** | D19 使 PRD 的触发条件已满足。建议演示之后再单独规划，演示前不动。两位都是开发者，所以服务端代理里程碑（D17）并未因此触发 | 演示后 |
+| 3 | **演示前的 API 缺口**（D21） | Claude 订阅[不包含 API 与 Console 的使用额度](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console)，而 App 内的 Claude 提取（演示路线 3）和评测脚本（P05-4）都要调 Messages API。可选：**A.** 现在在 Console 小额预付，只用于评测、调试和演示；按 `models.yaml` 的价格粗算，一次完整评测约十几美元，演示前合计约几十美元；演示后有 credits 再切换。**B.** 演示前不调 API：演示路线 3 改为手动输入加录屏，评测和选型推到演示后，演示核心会缺失。**C.** 评测脚本改用 Claude Agent SDK，走 Max 订阅附带的[Agent SDK 月度额度](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan)（面向个人实验）；但它的调用路径与 App 的 Messages API 不同，结果只能粗测，不能作为 ADR 0002 的依据，App 本身仍然需要 API | P05-4、P1-11 开工之前 |
 
-### 7.3 D16：代码许可证与贡献条款（对比，不做推荐）
+### 7.3 D16：代码许可证与贡献条款（拍板时的对比记录）
+
+**结论**（[ADR 0021](./decisions/0021-mit-license-for-mvp.md)）：MVP 阶段用 MIT；MVP 阶段不要求 DCO 或 CLA；`LICENSE` 的版权行改为两位成员。以下是拍板前的对比，保留作记录。
 
 **现状**：初始提交里已经有一份 MIT LICENSE，版权人写的是 "EatWell Studio"。目前仓库里还没有代码，现在改许可证几乎没有成本；等有了双方的代码贡献再改，就需要两人都同意。以下不构成法律意见。
 

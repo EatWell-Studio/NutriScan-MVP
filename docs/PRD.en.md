@@ -9,6 +9,7 @@
 > - 2026-09-26: Now a two-person collaboration, with a first external milestone of a demo on 2026-10-14; added `manual` to provenance; EU inference requires a server-side proxy (D17); model IDs and prices are now defined once in `schema/eval/models.yaml`. See [DEV_PLAN](./DEV_PLAN.en.md) for tasks and schedule, and [docs/decisions/](./decisions/) for decision records.
 > - 2026-09-26: Package name set to `de.belvast.nutriscan`; the demo uses Android first, iOS follows; Haiku 4.5 dropped from the VLM candidates; the collaborating developer counts as the second real user, so the cloud-sync trigger is met.
 > - 2026-09-26: Development runs on Claude subscriptions (Claude Code) with no API access for now; the API is decided after the 10/14 demo, depending on Startup credits (D21).
+> - 2026-09-26: The code license for the MVP phase is MIT (D16).
 
 ## 1. Product overview
 
@@ -277,7 +278,7 @@ See [DEV_PLAN section 1](./DEV_PLAN.en.md) for the mapping between decision IDs 
 - [x] Have someone assess the impact of ODbL share-alike before store release (D7)
 - [ ] Which Claude model to use for the VLM: decided after the Phase 0.5 evaluation (D14)
 - [x] Mistral only in the evaluation script; not implemented in the app before the demo (D15)
-- [ ] Code license and contribution terms (D16; no code PRs are merged until it is decided; code ownership is settled: jointly owned by the two members of EatWell Studio, D18)
+- [x] Code license and contribution terms: MIT during the MVP phase, no DCO or CLA (D16); the code is jointly owned by the two members of EatWell Studio (D18)
 - [x] The collaborating developer counts as the second real user (D19)
 - [ ] When Phase 3 (cloud sync) starts
 - [x] Demo platform: Android first, iOS afterwards (D20)
