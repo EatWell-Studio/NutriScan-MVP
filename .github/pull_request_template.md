@@ -1,34 +1,35 @@
-<!-- 标题格式：<scope>: <摘要> (<任务号>)，例如 app: add drift tables and append-only triggers (P1-3) -->
+<!-- Title format: <scope>: <summary> (<task-id>), e.g. app: add drift tables and append-only triggers (P1-3) -->
 
-## 任务
+## Task
 
-- 任务号：
+- Task ID:
 - Closes #
 
-## 改了什么
+## What changed
 
-<!-- 一两句话说明改动，以及为什么这样改。 -->
+<!-- One or two sentences on the change and why it was made this way. -->
 
-## 怎么测的
+## How it was tested
 
-<!-- 自动化测试、真机步骤、飞行模式等。 -->
+<!-- Automated tests, on-device steps, airplane mode, etc. -->
 
-## 涉及的 PRD 规则
+## PRD rules involved
 
-<!-- PRD 第 8 节的规则编号，例如：规则 3（append-only）、规则 5（主流程不依赖网络）。不涉及就写"无"。 -->
+<!-- Rule numbers from PRD §8, e.g. rule 3 (append-only), rule 5 (main flow must not depend on the network). Write "none" if none apply. -->
 
-## 截图
+## Screenshots
 
-<!-- 有 UI 改动时必须附截图；没有就删掉本节。 -->
+<!-- Required for UI changes; delete this section otherwise. -->
 
-## 检查清单
+## Checklist
 
-- [ ] 改过 `schema/` 的源文件后已重跑 codegen，`generated/` 与源文件一致
-- [ ] 没有提交任何密钥、`secrets.json` 或带 EXIF 的照片
-- [ ] 新的设计决策已写 ADR（或本 PR 不涉及新决策）
-- [ ] 本 PR **是否改动共享契约**（`nutrients.yaml`、VLM 输出 schema、`models.yaml`、drift 表结构、provenance 枚举、桶对象键规则）：
-  - [ ] 否
-  - [ ] 是，且本 PR 只包含契约改动，不含功能代码
-- [ ] 改了 drift 表结构时：已 bump `schemaVersion`、写迁移和迁移测试
-- [ ] 新增依赖时：已在上文写明理由和许可证
-- [ ] 每个提交都有正确前缀，且单独能通过测试
+- [ ] After changing sources under `schema/`, codegen was rerun and `generated/` matches
+- [ ] No secrets, no `secrets.json`, no photos with EXIF are committed
+- [ ] New design decisions have an ADR (or this PR makes none)
+- [ ] Does this PR **change a shared contract** (`nutrients.yaml`, VLM output schema, `models.yaml`, drift schema, provenance enum, bucket object-key rules)?
+  - [ ] No
+  - [ ] Yes, and this PR contains only the contract change, no feature code
+- [ ] If the drift schema changed: `schemaVersion` bumped, migration and migration test added
+- [ ] If PRD or DEV_PLAN changed: both the Chinese and English versions are updated
+- [ ] If dependencies were added: reason and license are stated above
+- [ ] Every commit has a correct prefix and passes the tests on its own
