@@ -1,33 +1,7 @@
-# CODEOWNERS：自动请求评审人。分工来由见 docs/DEV_PLAN.md 第 4 节，规则见 CONTRIBUTING.md 第 2、4 节。
+# CODEOWNERS: requests reviewers automatically. The rules are in CONTRIBUTING.md §2 and §4.
 #
-# TODO（任务 G-2）：把 @HANNES_GITHUB 和 @FRIEND_GITHUB 换成两人真实的 GitHub 用户名。
-# 占位符不替换的话，GitHub 会在 CODEOWNERS 页面报错。
-#
-# 后面的规则覆盖前面的规则，所以越具体的路径越要往后放。
+# The work split between the two members is not decided yet (DEV_PLAN §7.2). Until then,
+# both are owners of everything. Once the split is agreed, add per-directory owners below
+# (later rules override earlier ones, so more specific paths go last).
 
-# 默认：两人都是 owner
-*                                   @HANNES_GITHUB @FRIEND_GITHUB
-
-# 共享目录：两人都是 owner，另一人必须 review
-/schema/                            @HANNES_GITHUB @FRIEND_GITHUB
-/docs/decisions/                    @HANNES_GITHUB @FRIEND_GITHUB
-/CLAUDE.md                          @HANNES_GITHUB @FRIEND_GITHUB
-/CONTRIBUTING.md                    @HANNES_GITHUB @FRIEND_GITHUB
-/.github/                           @HANNES_GITHUB @FRIEND_GITHUB
-
-# app/：按分工（线 A = Hannes，线 B = 协作者）
-/app/                               @HANNES_GITHUB @FRIEND_GITHUB
-/app/lib/data/db/                   @HANNES_GITHUB @FRIEND_GITHUB
-/app/lib/domain/                    @HANNES_GITHUB
-/app/lib/data/clients/vlm/          @HANNES_GITHUB
-/app/lib/features/confirm/          @HANNES_GITHUB
-/app/lib/features/scan/             @FRIEND_GITHUB
-/app/lib/features/capture/          @FRIEND_GITHUB
-/app/lib/features/portion/          @FRIEND_GITHUB
-/app/lib/features/summary/          @FRIEND_GITHUB
-/app/lib/data/clients/off/          @FRIEND_GITHUB
-/app/lib/data/clients/bucket/       @FRIEND_GITHUB
-/app/lib/data/upload/               @FRIEND_GITHUB
-
-# api/：阶段 4 才启用，届时再分配
-/api/                               @HANNES_GITHUB @FRIEND_GITHUB
+*    @hannesgao @hyhcrh

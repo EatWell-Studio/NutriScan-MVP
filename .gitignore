@@ -1,0 +1,95 @@
+# This repository is public. When in doubt, ignore it and ask.
+# `flutter create` (P1-1) also generates app/.gitignore; both apply.
+
+# --- Secrets (see CONTRIBUTING.md §6) ---------------------------------------
+secrets.json
+**/secrets.json
+!secrets.example.json
+.env
+.env.*
+!.env.example
+# Android signing
+*.jks
+*.keystore
+key.properties
+# Apple signing / App Store Connect API keys
+*.p12
+*.p8
+*.cer
+*.mobileprovision
+# Cloud credentials (server-side proxy milestone, ADR 0015)
+*service-account*.json
+gcp-credentials*.json
+.aws/
+
+# --- Flutter / Dart ----------------------------------------------------------
+# pubspec.lock is committed on purpose (dependencies are pinned).
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+coverage/
+*.g.dart.tmp
+# iOS
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/Generated.xcconfig
+app/ios/Flutter/ephemeral/
+app/ios/Flutter/flutter_export_environment.sh
+**/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+# Android
+app/android/local.properties
+app/android/.gradle/
+app/android/captures/
+app/android/app/debug/
+app/android/app/profile/
+app/android/app/release/
+.gradle/
+.cxx/
+# Other Flutter platforms (not targeted)
+app/linux/flutter/ephemeral/
+app/macos/Flutter/ephemeral/
+app/windows/flutter/ephemeral/
+
+# --- Python (schema/, api/) --------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+.coverage
+htmlcov/
+
+# --- Data ----------------------------------------------------------------------
+# Evaluation photos are committed only after EXIF stripping (ADR 0011).
+# Put unprocessed photos here first; this directory is never committed.
+schema/eval/_incoming/
+# Large third-party downloads (BLS zip, OFF dumps) stay out of git.
+*.zip
+*.parquet
+*.jsonl
+*.jsonl.gz
+schema/tools/_downloads/
+
+# --- Editors / OS / tools ------------------------------------------------------
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+*.swp
+.DS_Store
+Thumbs.db
+*.log
+
+# Claude Code: personal settings stay local; CLAUDE.md is shared
+.claude/settings.local.json
+CLAUDE.local.md
