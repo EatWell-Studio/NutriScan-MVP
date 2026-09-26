@@ -9,6 +9,7 @@
 > - 2026-09-26：改为两人协作，首个外部里程碑为 2026-10-14 演示；provenance 增加 `manual`；EU 境内推理需要服务端代理（D17）；型号 ID 与价格改由 `schema/eval/models.yaml` 统一定义。任务与排期见 [DEV_PLAN](./DEV_PLAN.md)，决策记录见 [docs/decisions/](./decisions/)。
 > - 2026-09-26：包名定为 `de.belvast.nutriscan`；演示先用 Android，iOS 随后补齐；Haiku 4.5 移出 VLM 候选；协作开发者计为第二个真实用户，云同步的触发条件已满足。
 > - 2026-09-26：开发期用 Claude 订阅（Claude Code），暂不开通 API；API 在 10/14 演示后视 Startup credits 再定（D21）。
+> - 2026-09-26：MVP 阶段代码许可证定为 MIT（D16）。
 
 ## 1. 产品概述
 
@@ -277,7 +278,7 @@ docs/       本 PRD、架构图、决策记录
 - [x] ODbL share-alike 的影响上架前再请人评估（D7）
 - [ ] VLM 用哪个 Claude 型号：阶段 0.5 评测后定（D14）
 - [x] Mistral 只进评测脚本，App 里演示前不实现（D15）
-- [ ] 代码许可证与贡献条款（D16，拍板前不合并代码 PR；代码归属已定为 EatWell Studio 两位成员共有，D18）
+- [x] 代码许可证与贡献条款：MVP 阶段用 MIT，不要求 DCO 或 CLA（D16）；代码归 EatWell Studio 两位成员共有（D18）
 - [x] 协作开发者计为第二个真实用户（D19）
 - [ ] 阶段 3（云同步）何时启动
 - [x] 演示平台：Android 先行，iOS 随后（D20）

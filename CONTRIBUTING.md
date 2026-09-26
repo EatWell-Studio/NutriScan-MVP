@@ -2,8 +2,6 @@
 
 Two developers, a public repository, one monorepo. This file covers the human collaboration process; the rules for Claude Code are in [CLAUDE.md](./CLAUDE.md). If the two conflict, this file wins and CLAUDE.md must be fixed promptly.
 
-> **Current gate**: until the code license and contribution terms (D16 in DEV_PLAN) are decided, no code PR is merged. Only PRs touching `docs/`, `CLAUDE.md`, `CONTRIBUTING.md`, `.gitignore` and non-workflow files under `.github/` may be merged before that.
-
 ## 1. Task tracking
 
 - [DEV_PLAN](./docs/DEV_PLAN.en.md) contains the plan only, **never progress**. Progress lives in GitHub Issues / Projects, so the two of us never edit DEV_PLAN concurrently.
@@ -46,8 +44,7 @@ About CODEOWNERS: [CODEOWNERS](./.github/CODEOWNERS) is used to request reviewer
 - Prefixes: `app:` / `api:` / `schema:` / `docs:` / `ci:`. One commit touches one layer; split cross-layer changes into several commits.
 - English, imperative mood, subject line at most 72 characters; the body names the task, e.g. `Refs: P1-3`.
 - Every commit passes the tests on its own (rebase merge puts every commit on main).
-- If D16 chooses DCO: every commit carries `Signed-off-by` (`git commit -s`).
-- CI checks the commit message prefix (and the sign-off, if DCO is chosen).
+- CI checks the commit message prefix.
 
 ## 4. Directory ownership
 
@@ -75,4 +72,4 @@ The repository is public.
 ## 7. Dependencies
 
 - Pin versions and commit `pubspec.lock` (same for Python lock files).
-- State the reason and license of every new dependency in the PR description. Licenses must be compatible with the code license chosen in D16.
+- State the reason and license of every new dependency in the PR description. Licenses must be compatible with the project's MIT license (ADR 0021); copyleft licenses (GPL family) need an explicit decision first.

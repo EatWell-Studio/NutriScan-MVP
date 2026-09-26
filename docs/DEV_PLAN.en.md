@@ -1,6 +1,6 @@
 # NutriScan MVP — Development Plan
 
-2026-09-26 · v0.3 (two-person edition)
+2026-09-26 · v0.4 (two-person edition)
 
 > Language: English (translation) · [中文（主版本）](./DEV_PLAN.md). The Chinese version is canonical; update both in the same PR.
 
@@ -31,14 +31,14 @@ This document breaks the [PRD](./PRD.en.md) down into executable tasks. The PRD 
 | D13 | Secrets | Once API access is enabled (D21): dedicated Anthropic workspace + workspace monthly limit; a key per person. Applies now: `secrets.example.json`; password manager; gitleaks in CI | Decided | [0014](./decisions/0014-secrets-and-api-keys.md) |
 | D14 | VLM model | Decided after the phase 0.5 evaluation. Candidates: Opus 5.5 / Sonnet 5 (Haiku 4.5 has been dropped); Fable 5.1 only as an accuracy-ceiling reference. Criteria in order: silent error rate → P90 ≤ 25 s → cost | Process decided, **model pending evaluation** | [0002](./decisions/0002-vlm-model-selection.md) |
 | D15 | Mistral | Only in the evaluation script; not implemented in the app before the demo; third among EU fallbacks | Decided | [0003](./decisions/0003-mistral-eval-only.md) |
-| D16 ★ | Code license + contribution terms | Options compared in section 7.3; to be decided jointly by both. **No code PR is merged before this is decided**. Code ownership is decided (D18) | **Open** | — |
+| D16 | Code license + contribution terms | MIT during the MVP phase, for maximum freedom in coding; no DCO or CLA during the MVP phase. Code ownership: see D18 | Decided | [0021](./decisions/0021-mit-license-for-mvp.md) |
 | D17 | Server-side proxy milestone | In-EU inference (Vertex AI EU) and "no secrets on the client" merged into a single milestone; a prerequisite for any external distribution and for phase 5 | Decided | [0015](./decisions/0015-server-proxy-milestone.md) |
 | D18 | Code ownership | The code is jointly owned by the two members of EatWell Studio | Decided | [0017](./decisions/0017-code-ownership.md) |
 | D19 | Does the collaborator count as the "second real user" | Yes. The PRD trigger for introducing cloud sync (phase 3) is therefore met; start date TBD (7.2) | Decided | [0018](./decisions/0018-collaborator-is-second-user.md) |
 | D20 | Demo platform | The 10/14 demo uses Android; the iOS version follows after the demo | Decided | [0019](./decisions/0019-android-first-demo.md) |
 | D21 ★ | How we use Claude | **Development** (Claude Code): Hannes uses a personal Claude Max subscription, the collaborator uses a gifted free one-week trial pass. **API**: considered after the 10/14 demo, if we get free Startup credits. Subscriptions include no API usage, yet in-app extraction and the evaluation script both call the API; see 7.2 for the pre-demo gap | Development part decided; **API part open** | [0020](./decisions/0020-claude-access.md) |
 
-★ = blocks merging code PRs; the sooner, the better.
+★ = blocks key tasks; the sooner, the better.
 
 ---
 
@@ -294,7 +294,7 @@ The work splits by dependency into two tracks that can run in parallel. The shar
 
 ```mermaid
 flowchart LR
-  G1[G-1 Decide D16 and division of work] --> P11[P1-1 Skeleton]
+  G1[G-1 Decide division of work] --> P11[P1-1 Skeleton]
   G1 --> C1[C-1 nutrients.yaml]
   C1 --> C2[C-2 VLM output schema]
   C3[C-3 models.yaml] --> C4
@@ -335,7 +335,7 @@ flowchart LR
 
 | Task | Contents | Owner | Depends on | Est. (h) |
 | --- | --- | --- | --- | --- |
-| G-1 | Decide D16 and the division of work (section 7.2) | Both | — | 1+1 |
+| G-1 | Decide the division of work (section 7.2; D16 is decided) | Both | — | 1+1 |
 | G-2 | GitHub: set up branch protection and rebase-only per the table in CONTRIBUTING; create an issue for every task and a Project board; update CODEOWNERS once the division of work is agreed | TBD | G-1 | 1.5 |
 | G-3 | Development tools: Hannes uses Claude Max; the collaborator activates the one-week trial pass (valid 7 days: activate it when the work starts and agree beforehand what happens when it expires). Once API access is enabled (D21): create the dedicated workspace, set the monthly limit, one key per person | Both | — | 0.5 |
 
@@ -344,7 +344,7 @@ flowchart LR
 | Task | Contents | Owner | Depends on | Est. (h) |
 | --- | --- | --- | --- | --- |
 | P0-1 | Collect 30+ barcodes from shopping receipts (including Rewe / Lidl / Kaufland / Alnatura private labels and Asian products) | TBD | — | 1 |
-| P0-2 | `schema/tools/off_probe.py` measures the hit rate, written up in `docs/notes/off-hit-rate.md`; also picks the "OFF hit" and "not in OFF" products for the demo | TBD | P0-1, D16 | 1.5 |
+| P0-2 | `schema/tools/off_probe.py` measures the hit rate, written up in `docs/notes/off-hit-rate.md`; also picks the "OFF hit" and "not in OFF" products for the demo | TBD | P0-1 | 1.5 |
 | P0-3 | BLS field notes | TBD | — | **Post-demo** |
 | P0-4 | 30+ evaluation photos, **supermarket or products already at home are both fine**, each of you shoots half; cover per 100g / per serving columns, kJ/kcal side by side, glare, curved packaging, small print, at least 3 non-German labels; strip EXIF before committing | Both | — | 1.5+1.5 |
 | P0-5 | Each of you enters the ground truth for the half you shot (seven core fields + reference quantity) | Both | P0-4 | 1.5+1.5 |
@@ -366,8 +366,8 @@ flowchart LR
 
 | Task | Contents | Owner | Depends on | Est. (h) |
 | --- | --- | --- | --- | --- |
-| P1-1 | `flutter create` with package name `de.belvast.nutriscan` (D1); `flutter_lints`, Riverpod, drift, `mobile_scanner`, `camera`; Chinese and English ARB files; `secrets.example.json` (with a `contributor` field whose value is the GitHub username; `.gitignore` is already at the repository root); the directory structure from section 2. Only Android is brought up before the demo | TBD | D16 | 3 |
-| P1-2 | Minimal CI (one workflow): `flutter analyze && flutter test`, `ruff && pytest`, codegen diff, gitleaks, commit message prefix check (plus sign-off check if D16 chooses DCO) | TBD | P1-1 | 2.5 |
+| P1-1 | `flutter create` with package name `de.belvast.nutriscan` (D1); `flutter_lints`, Riverpod, drift, `mobile_scanner`, `camera`; Chinese and English ARB files; `secrets.example.json` (with a `contributor` field whose value is the GitHub username; `.gitignore` is already at the repository root); the directory structure from section 2. Only Android is brought up before the demo | TBD | — | 3 |
+| P1-2 | Minimal CI (one workflow): `flutter analyze && flutter test`, `ruff && pytest`, codegen diff, gitleaks, commit message prefix check | TBD | P1-1 | 2.5 |
 
 #### Track A: schema, VLM, evaluation, confirm screen
 
@@ -490,12 +490,13 @@ flowchart LR
 
 | # | Item | Notes | Deadline |
 | --- | --- | --- | --- |
-| 1 | **D16 code license + contribution terms** | See 7.3. Code ownership is decided as joint ownership by the two members (D18); the copyright line of the existing MIT LICENSE says "EatWell Studio" and should be changed to match the ownership when the license is decided | Before the first code PR is merged |
-| 2 | **Division of work** | The two tracks, the author of the shared contract (C-1 – C-5), and the owner of each task; once agreed, fill in the "Owner" column in 4.4 and split owners by directory in CODEOWNERS | Before contract work starts |
-| 3 | **When to start phase 3 (cloud sync)** | D19 means the PRD trigger is met. Recommend planning it separately after the demo and leaving it untouched before. Both of you are developers, so the server-side proxy milestone (D17) is not triggered by this | Post-demo |
-| 4 | **The pre-demo API gap** (D21) | Claude subscriptions [do not include API or Console usage](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console), yet in-app Claude extraction (demo route step 3) and the evaluation script (P05-4) both call the Messages API. Options: **A.** Prepay a small Console balance now, only for evaluation, debugging and the demo; a rough estimate from the `models.yaml` prices is about a dozen dollars per full evaluation run and a few tens of dollars in total before the demo; switch once credits arrive. **B.** No API calls before the demo: demo route step 3 becomes manual input plus a recording, evaluation and model selection move after the demo, and the demo loses its core. **C.** Run the evaluation script through the Claude Agent SDK on the [monthly Agent SDK credit that comes with the Max plan](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan) (meant for individual experimentation); its call path differs from the app's Messages API calls, so results are only a rough check and cannot back ADR 0002, and the app itself still needs the API | Before P05-4 and P1-11 start |
+| 1 | **Division of work** | The two tracks, the author of the shared contract (C-1 – C-5), and the owner of each task; once agreed, fill in the "Owner" column in 4.4 and split owners by directory in CODEOWNERS | Before contract work starts |
+| 2 | **When to start phase 3 (cloud sync)** | D19 means the PRD trigger is met. Recommend planning it separately after the demo and leaving it untouched before. Both of you are developers, so the server-side proxy milestone (D17) is not triggered by this | Post-demo |
+| 3 | **The pre-demo API gap** (D21) | Claude subscriptions [do not include API or Console usage](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console), yet in-app Claude extraction (demo route step 3) and the evaluation script (P05-4) both call the Messages API. Options: **A.** Prepay a small Console balance now, only for evaluation, debugging and the demo; a rough estimate from the `models.yaml` prices is about a dozen dollars per full evaluation run and a few tens of dollars in total before the demo; switch once credits arrive. **B.** No API calls before the demo: demo route step 3 becomes manual input plus a recording, evaluation and model selection move after the demo, and the demo loses its core. **C.** Run the evaluation script through the Claude Agent SDK on the [monthly Agent SDK credit that comes with the Max plan](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan) (meant for individual experimentation); its call path differs from the app's Messages API calls, so results are only a rough check and cannot back ADR 0002, and the app itself still needs the API | Before P05-4 and P1-11 start |
 
-### 7.3 D16: code license and contribution terms (comparison, no recommendation)
+### 7.3 D16: code license and contribution terms (comparison kept for the record)
+
+**Outcome** ([ADR 0021](./decisions/0021-mit-license-for-mvp.md)): MIT during the MVP phase; no DCO or CLA during the MVP phase; the `LICENSE` copyright line names the two members. The comparison below is what the decision was based on.
 
 **Current state**: the initial commit already contains an MIT LICENSE, with "EatWell Studio" as the copyright holder. There is no code in the repository yet, so changing the license now costs almost nothing; once both of you have contributed code, changing it will require both to agree. The following is not legal advice.
 

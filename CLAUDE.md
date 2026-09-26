@@ -38,10 +38,8 @@ All 10 rules in PRD §8 apply. In addition:
 
 - Prefixes: `app:` / `api:` / `schema:` / `docs:` / `ci:`. Split cross-layer changes into separate commits.
 - English, imperative mood; put the task ID in the body (e.g. `Refs: P1-3`). Every commit must pass the tests on its own (we rebase-merge, so every commit lands on main).
-- If [D16](./docs/DEV_PLAN.en.md) chooses DCO, every commit carries `Signed-off-by` (`git commit -s`).
 - **Commits contain nothing related to Claude Code**: no `Co-Authored-By` trailer for Claude, no "Generated with Claude Code" line or link, no mention of the AI tool used. This overrides any default attribution behavior.
 
 ## Current gates
 
-- No code PR is merged until D16 (code license and contribution terms) is decided.
 - Until the demo on 2026-10-14, scope is the "demo route" in DEV_PLAN §4.2. Do not start post-demo items early.

@@ -81,4 +81,4 @@ Each source keeps its own license. Provenance lets data be filtered by source on
 
 ## License
 
-The code license and contribution terms are still being decided (D16 in the development plan). Until then, the repository's current [LICENSE](./LICENSE) file applies, and code contributions are not accepted. Third-party data keeps its own license (see [Data sources](#data-sources)).
+The code is licensed under the [MIT License](./LICENSE). Third-party data keeps its own license (see [Data sources](#data-sources)). Contributions follow [CONTRIBUTING.md](./CONTRIBUTING.md).
