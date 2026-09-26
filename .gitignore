@@ -24,6 +24,8 @@ gcp-credentials*.json
 
 # --- Flutter / Dart ----------------------------------------------------------
 # pubspec.lock is committed on purpose (dependencies are pinned).
+# FVM: .fvmrc is committed, the local SDK link is not (ADR 0024).
+.fvm/
 .dart_tool/
 .packages
 .pub/
