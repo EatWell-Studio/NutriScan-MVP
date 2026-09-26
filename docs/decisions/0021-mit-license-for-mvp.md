@@ -11,7 +11,8 @@ The initial commit already contained an MIT `LICENSE` naming "EatWell Studio". C
 ## Decision
 
 - The code is licensed under **MIT** during the MVP phase, for maximum freedom in coding.
-- No DCO sign-off and no CLA are required during the MVP phase. CI checks only the commit message prefix.
+- No DCO sign-off and no CLA are required during the MVP phase, so CI does not check for sign-offs.
+- External code contributions are not accepted during the MVP phase; only the two members contribute code.
 - The `LICENSE` copyright line names the two members: `Copyright (c) 2026 Hannes Gao and hyhcrh (members of EatWell Studio)`.
 
 ## Consequences

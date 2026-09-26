@@ -10,6 +10,7 @@
 > - 2026-09-26：包名定为 `de.belvast.nutriscan`；演示先用 Android，iOS 随后补齐；Haiku 4.5 移出 VLM 候选；协作开发者计为第二个真实用户，云同步的触发条件已满足。
 > - 2026-09-26：开发期用 Claude 订阅（Claude Code），暂不开通 API；API 在 10/14 演示后视 Startup credits 再定（D21）。
 > - 2026-09-26：MVP 阶段代码许可证定为 MIT（D16）。
+> - 2026-09-26：分工定为线 A Hannes、线 B mica；API 改由 Hannes 的 Startup 账号预付（D21）；CI 规约（D22）；MVP 阶段不接受外部代码贡献；演示活动的参加申请待批准。
 
 ## 1. 产品概述
 
@@ -34,7 +35,7 @@
 - 用 AI 识别条码（用原生扫码）
 - 预装 OFF 全量或裁剪 dump
 
-**开发方式**：两人协作（公开仓库、单仓库），周末加工作日晚上，主要用 Claude Code 编写。协作规则见 [CONTRIBUTING.md](../CONTRIBUTING.md) 与 [CLAUDE.md](../CLAUDE.md)。首个外部里程碑：2026-10-14 在 Claude Founder House Stockholm 现场演示。
+**开发方式**：两人协作（公开仓库、单仓库），周末加工作日晚上，主要用 Claude Code 编写。协作规则见 [CONTRIBUTING.md](../CONTRIBUTING.md) 与 [CLAUDE.md](../CLAUDE.md)。首个外部里程碑：2026-10-14 在 Claude Founder House Stockholm 现场演示（参加申请待批准；开发进度仍以该日期为目标）。
 
 ## 2. 核心需求与功能列表
 
@@ -127,7 +128,7 @@ flowchart LR
 | 客户端 | Flutter | 跨平台、能上架双商店、相机与扫码生态成熟。否决原生（周末项目，上架两平台的收益大于性能）和 PWA（接 API 费劲） |
 | 条码 | ML Kit（Android）/ AVFoundation（iOS） | 快、准、免费；不用 AI |
 | 本地存储 | SQLite | 权威数据源；远端无论用什么都只是同步目标 |
-| 识图 | Claude（Anthropic Messages API），一次调用用[结构化输出](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)（`output_config.format` + JSON Schema）直接返回 JSON。候选型号：Opus 5.5（[官方推荐的默认起点](https://platform.claude.com/docs/en/models/overview)）、Sonnet 5，阶段 0.5 评测后拍板（ADR 0002）。**型号 ID、价格、图片上限只在 `schema/eval/models.yaml` 定义**，本文不写具体数字 | 备选：Mistral La Plateforme（Pixtral，EU 数据驻留），只进评测脚本，是 EU 路线的第三顺位退路。否决 Groq（文本优先）和 OpenRouter `:free`（best-effort、限流、名单常换）。Claude API 无免费层，按 token 计费；按 Anthropic 商业条款，API 的输入输出[默认不用于训练](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training)。Anthropic 没有官方 Dart SDK，App 端直接调 HTTP；批处理层用官方 Python SDK，重跑历史可以走 Message Batches（半价）。Claude 订阅（Pro / Max）[不包含 API 额度](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console)；开发期暂不开通 API，演示前的缺口见 D21 |
+| 识图 | Claude（Anthropic Messages API），一次调用用[结构化输出](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)（`output_config.format` + JSON Schema）直接返回 JSON。候选型号：Opus 5.5（[官方推荐的默认起点](https://platform.claude.com/docs/en/models/overview)）、Sonnet 5，阶段 0.5 评测后拍板（ADR 0002）。**型号 ID、价格、图片上限只在 `schema/eval/models.yaml` 定义**，本文不写具体数字 | 备选：Mistral La Plateforme（Pixtral，EU 数据驻留），只进评测脚本，是 EU 路线的第三顺位退路。否决 Groq（文本优先）和 OpenRouter `:free`（best-effort、限流、名单常换）。Claude API 无免费层，按 token 计费；按 Anthropic 商业条款，API 的输入输出[默认不用于训练](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training)。Anthropic 没有官方 Dart SDK，App 端直接调 HTTP；批处理层用官方 Python SDK，重跑历史可以走 Message Batches（半价）。Claude 订阅（Pro / Max）[不包含 API 额度](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console)；评测与 App 内提取所需的 API 额度由 Hannes 的 Startup 账号预付（D21） |
 | 原始数据出口 | 自有对象存储桶（不在 Supabase 内），append-only，对象键以 `<barcode>_<timestamp>` 开头（无条码时的替代规则、确认结果的版本等见 ADR 0012） | 唯一不可再生的资产；约二十行代码；将来迁移时它不用动 |
 | 云端（触发后） | Supabase，EU 区域（Frankfurt） | 托管 Postgres + Auth + RLS + Storage + 全文搜索。否决 Firebase：营养数据强关系型、需要模糊搜索、共享库读密集按读计费 |
 | 批处理（触发后） | FastAPI + Python | 位置在数据库**下方**做批处理（读桶、重跑 VLM、归一化写回），不是 App 与数据库之间的 API 层 |
@@ -246,7 +247,7 @@ docs/       本 PRD、架构图、决策记录
 - Dart：官方 `flutter_lints`；数据库访问只经一个 repository 层；UI 不直接碰 SQLite
 - Python：Pydantic v2 模型作为 schema 源；`ruff` + `pytest`
 - 数值统一用小数存储，单位显式为字段名后缀（`energy_kcal`、`sodium_mg`、`salt_g`），不用裸数字
-- 提交信息标明改动层：`app:`、`api:`、`schema:`、`docs:`、`ci:`
+- 提交信息标明改动层：`app:`、`api:`、`schema:`、`docs:`、`ci:`，仓库级杂项用 `chore:`；正文必须写 `Refs:` 任务号（D22）
 
 **协作**：分支、PR、review、合并方式见 [CONTRIBUTING.md](../CONTRIBUTING.md)；Claude Code 的会话规则见 [CLAUDE.md](../CLAUDE.md)。型号 ID 与价格只在 `schema/eval/models.yaml` 定义一次。
 
@@ -282,7 +283,7 @@ docs/       本 PRD、架构图、决策记录
 - [x] 协作开发者计为第二个真实用户（D19）
 - [ ] 阶段 3（云同步）何时启动
 - [x] 演示平台：Android 先行，iOS 随后（D20）
-- [ ] 演示前的 API 额度：开发用 Claude 订阅已定，App 内提取与评测需要的 API 额度待定（D21）
+- [x] 演示前的 API 额度：开发用 Claude 订阅；App 内提取与评测的 API 额度由 Hannes 的 Startup 账号预付（D21）
 
 **明确推后的方向**（讨论中已有思路，但不进 MVP）
 

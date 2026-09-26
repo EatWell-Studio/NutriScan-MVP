@@ -1,6 +1,6 @@
 # ADR 0020: How we use Claude — subscriptions for development, API later
 
-- Status: Accepted for development tooling; API access is **open** (see "Open question")
+- Status: Accepted. The open question on pre-demo API access is resolved by [ADR 0022](./0022-prepaid-api-before-demo.md) (option A)
 - Date: 2026-09-26
 - Decision: D21
 

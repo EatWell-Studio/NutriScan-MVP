@@ -10,6 +10,7 @@
 > - 2026-09-26: Package name set to `de.belvast.nutriscan`; the demo uses Android first, iOS follows; Haiku 4.5 dropped from the VLM candidates; the collaborating developer counts as the second real user, so the cloud-sync trigger is met.
 > - 2026-09-26: Development runs on Claude subscriptions (Claude Code) with no API access for now; the API is decided after the 10/14 demo, depending on Startup credits (D21).
 > - 2026-09-26: The code license for the MVP phase is MIT (D16).
+> - 2026-09-26: Work split set: Track A Hannes, Track B mica; the API is now prepaid through Hannes's Startup account (D21); CI conventions (D22); no external code contributions during the MVP phase; the application to attend the demo event is pending.
 
 ## 1. Product overview
 
@@ -34,7 +35,7 @@ An offline-first personal food logging app: if a barcode scan hits, the item is 
 - Recognizing barcodes with AI (use native scanning)
 - Preloading a full or trimmed OFF dump
 
-**How it is built**: A two-person collaboration (public repository, monorepo), on weekends plus weekday evenings, written mainly with Claude Code. Collaboration rules are in [CONTRIBUTING.md](../CONTRIBUTING.md) and [CLAUDE.md](../CLAUDE.md). First external milestone: a live demo at Claude Founder House Stockholm on 2026-10-14.
+**How it is built**: A two-person collaboration (public repository, monorepo), on weekends plus weekday evenings, written mainly with Claude Code. Collaboration rules are in [CONTRIBUTING.md](../CONTRIBUTING.md) and [CLAUDE.md](../CLAUDE.md). First external milestone: a live demo at Claude Founder House Stockholm on 2026-10-14 (attendance application pending; development still targets this date).
 
 ## 2. Core requirements and feature list
 
@@ -127,7 +128,7 @@ There is deliberately no line between the bucket and SQLite: the bucket is not a
 | Client | Flutter | Cross-platform, can ship to both stores, mature camera and scanning ecosystem. Rejected native (weekend project; shipping to both platforms matters more than performance) and PWA (awkward API access) |
 | Barcode | ML Kit (Android) / AVFoundation (iOS) | Fast, accurate, free; no AI |
 | Local storage | SQLite | Source of truth; whatever runs remotely is only a sync target |
-| Image recognition | Claude (Anthropic Messages API); a single call uses [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) (`output_config.format` + JSON Schema) to return JSON directly. Candidate models: Opus 5.5 ([the officially recommended default starting point](https://platform.claude.com/docs/en/models/overview)), Sonnet 5; decided after the Phase 0.5 evaluation (ADR 0002). **Model IDs, prices and image limits are defined only in `schema/eval/models.yaml`**; this document does not state concrete numbers | Alternative: Mistral La Plateforme (Pixtral, EU data residency), only in the evaluation script, third-choice fallback for the EU route. Rejected Groq (text-first) and OpenRouter `:free` (best-effort, rate-limited, model list changes often). The Claude API has no free tier and bills per token; under Anthropic's commercial terms, API inputs and outputs are [not used for training by default](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training). Anthropic has no official Dart SDK, so the app calls HTTP directly; the batch layer uses the official Python SDK, and re-running history can go through Message Batches (half price). Claude subscriptions (Pro / Max) [do not include API usage](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console); no API access is set up during development for now, see D21 for the pre-demo gap |
+| Image recognition | Claude (Anthropic Messages API); a single call uses [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) (`output_config.format` + JSON Schema) to return JSON directly. Candidate models: Opus 5.5 ([the officially recommended default starting point](https://platform.claude.com/docs/en/models/overview)), Sonnet 5; decided after the Phase 0.5 evaluation (ADR 0002). **Model IDs, prices and image limits are defined only in `schema/eval/models.yaml`**; this document does not state concrete numbers | Alternative: Mistral La Plateforme (Pixtral, EU data residency), only in the evaluation script, third-choice fallback for the EU route. Rejected Groq (text-first) and OpenRouter `:free` (best-effort, rate-limited, model list changes often). The Claude API has no free tier and bills per token; under Anthropic's commercial terms, API inputs and outputs are [not used for training by default](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training). Anthropic has no official Dart SDK, so the app calls HTTP directly; the batch layer uses the official Python SDK, and re-running history can go through Message Batches (half price). Claude subscriptions (Pro / Max) [do not include API usage](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console); the API credit for evaluation and in-app extraction is prepaid through Hannes's Startup account (D21) |
 | Raw data export | Own object storage bucket (not inside Supabase), append-only; object keys start with `<barcode>_<timestamp>` (the rule for products without a barcode, versions of confirmed results, etc. are in ADR 0012) | The only non-reproducible asset; about twenty lines of code; does not need to move in any future migration |
 | Cloud (once triggered) | Supabase, EU region (Frankfurt) | Managed Postgres + Auth + RLS + Storage + full-text search. Rejected Firebase: nutrition data is strongly relational, needs fuzzy search, and a shared database is read-heavy while Firebase bills per read |
 | Batch processing (once triggered) | FastAPI + Python | Sits **below** the database for batch work (read the bucket, re-run the VLM, write normalized results back); it is not an API layer between the app and the database |
@@ -246,7 +247,7 @@ docs/       this PRD, architecture diagrams, decision records
 - Dart: official `flutter_lints`; database access only through one repository layer; the UI never touches SQLite directly
 - Python: Pydantic v2 models as the schema source; `ruff` + `pytest`
 - Numbers are stored as decimals, with the unit made explicit as a field-name suffix (`energy_kcal`, `sodium_mg`, `salt_g`); no bare numbers
-- Commit messages state the layer changed: `app:`, `api:`, `schema:`, `docs:`, `ci:`
+- Commit messages state the layer changed: `app:`, `api:`, `schema:`, `docs:`, `ci:`, and `chore:` for repository-level housekeeping; the body must include `Refs:` with the task ID (D22)
 
 **Collaboration**: Branches, PRs, review and merge method are described in [CONTRIBUTING.md](../CONTRIBUTING.md); Claude Code session rules are in [CLAUDE.md](../CLAUDE.md). Model IDs and prices are defined only once, in `schema/eval/models.yaml`.
 
@@ -282,7 +283,7 @@ See [DEV_PLAN section 1](./DEV_PLAN.en.md) for the mapping between decision IDs 
 - [x] The collaborating developer counts as the second real user (D19)
 - [ ] When Phase 3 (cloud sync) starts
 - [x] Demo platform: Android first, iOS afterwards (D20)
-- [ ] API credit before the demo: development on Claude subscriptions is decided; the API credit needed for in-app extraction and evaluation is open (D21)
+- [x] API credit before the demo: development runs on Claude subscriptions; the API credit for in-app extraction and evaluation is prepaid through Hannes's Startup account (D21)
 
 **Explicitly postponed directions** (ideas exist from the discussions, but not in the MVP)
 

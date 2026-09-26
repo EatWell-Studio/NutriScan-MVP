@@ -27,8 +27,10 @@ Open an ADR PR before writing code for any new design decision, and start coding
 | [0017](./0017-code-ownership.md) | D18 Code ownership | Accepted |
 | [0018](./0018-collaborator-is-second-user.md) | D19 The collaborator counts as the second real user | Accepted |
 | [0019](./0019-android-first-demo.md) | D20 Android-first demo, iOS afterwards | Accepted |
-| [0020](./0020-claude-access.md) | D21 How we use Claude: subscriptions for development, API later | Accepted (development); API access open |
+| [0020](./0020-claude-access.md) | D21 How we use Claude: subscriptions for development, API later | Accepted; API question resolved by 0022 |
 | [0021](./0021-mit-license-for-mvp.md) | D16 MIT license for the MVP phase | Accepted |
+| [0022](./0022-prepaid-api-before-demo.md) | D21 Prepaid API access before the demo (resolves the open question in 0020) | Accepted |
+| [0023](./0023-ci-architecture.md) | D22 CI architecture and commit conventions | Accepted |
 
 ## Template
 

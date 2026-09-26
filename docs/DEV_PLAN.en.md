@@ -1,14 +1,14 @@
 # NutriScan MVP — Development Plan
 
-2026-09-26 · v0.4 (two-person edition)
+2026-09-26 · v0.5 (two-person edition)
 
 > Language: English (translation) · [中文（主版本）](./DEV_PLAN.md). The Chinese version is canonical; update both in the same PR.
 
 This document breaks the [PRD](./PRD.en.md) down into executable tasks. The PRD says "what and why"; this document says "in what order, how many hours, and what counts as done". This document **contains only the plan and does not track progress**: progress is tracked in GitHub Issues / Projects (see [CONTRIBUTING.md](../CONTRIBUTING.md)). Each decided design decision has its own ADR in [docs/decisions/](./decisions/).
 
-**Hard date**: 2026-10-14 is the live demo at Claude Founder House Stockholm (on an Android device); until then, only the contents of the section 4.2 "demo route" are in scope.
+**Target date**: 2026-10-14 is the live demo at Claude Founder House Stockholm (on an Android device). The application to attend the event is still pending; approved or not, development targets 10/14, and the demo-day arrangements are settled once it is approved. Until then, only the contents of the section 4.2 "demo route" are in scope.
 
-**Members**: the two members of EatWell Studio, GitHub usernames `hannesgao` (Hannes) and `hyhcrh` (collaborator). The division of work is to be agreed between the two.
+**Members and division of work**: the two members of EatWell Studio. `hannesgao` (Hannes) owns Track A, drafts the shared contract, and owns Phase 0 plus the skeleton and CI; `hyhcrh` (mica) owns Track B and reviews the shared contract. See 4.3.
 
 ---
 
@@ -28,17 +28,17 @@ This document breaks the [PRD](./PRD.en.md) down into executable tasks. The PRD 
 | D10 | Photos | Store both the original and the derived image (locally + in the bucket), record sha256 for both, strip EXIF from both | Decided | [0011](./decisions/0011-photo-original-and-derived.md) |
 | D11 | Bucket object layout | Photos + raw JSON + `_confirmed.v<N>.json`; key rule for items without a barcode; contributor is the GitHub username; raw JSON records contributor, model, effort, token counts | Decided | [0012](./decisions/0012-bucket-object-layout.md) |
 | D12 | State management / local DB | Riverpod + drift | Decided | [0013](./decisions/0013-riverpod-drift.md) |
-| D13 | Secrets | Once API access is enabled (D21): dedicated Anthropic workspace + workspace monthly limit; a key per person. Applies now: `secrets.example.json`; password manager; gitleaks in CI | Decided | [0014](./decisions/0014-secrets-and-api-keys.md) |
+| D13 | Secrets | Anthropic: a dedicated NutriScan workspace under Hannes's Startup account, with a workspace monthly limit and one key per person (D21); `secrets.example.json`; password manager; gitleaks in CI | Decided | [0014](./decisions/0014-secrets-and-api-keys.md) |
 | D14 | VLM model | Decided after the phase 0.5 evaluation. Candidates: Opus 5.5 / Sonnet 5 (Haiku 4.5 has been dropped); Fable 5.1 only as an accuracy-ceiling reference. Criteria in order: silent error rate → P90 ≤ 25 s → cost | Process decided, **model pending evaluation** | [0002](./decisions/0002-vlm-model-selection.md) |
 | D15 | Mistral | Only in the evaluation script; not implemented in the app before the demo; third among EU fallbacks | Decided | [0003](./decisions/0003-mistral-eval-only.md) |
-| D16 | Code license + contribution terms | MIT during the MVP phase, for maximum freedom in coding; no DCO or CLA during the MVP phase. Code ownership: see D18 | Decided | [0021](./decisions/0021-mit-license-for-mvp.md) |
+| D16 | Code license + contribution terms | MIT during the MVP phase, for maximum freedom in coding; no DCO or CLA during the MVP phase, and no external code contributions. Code ownership: see D18 | Decided | [0021](./decisions/0021-mit-license-for-mvp.md) |
 | D17 | Server-side proxy milestone | In-EU inference (Vertex AI EU) and "no secrets on the client" merged into a single milestone; a prerequisite for any external distribution and for phase 5 | Decided | [0015](./decisions/0015-server-proxy-milestone.md) |
 | D18 | Code ownership | The code is jointly owned by the two members of EatWell Studio | Decided | [0017](./decisions/0017-code-ownership.md) |
 | D19 | Does the collaborator count as the "second real user" | Yes. The PRD trigger for introducing cloud sync (phase 3) is therefore met; start date TBD (7.2) | Decided | [0018](./decisions/0018-collaborator-is-second-user.md) |
 | D20 | Demo platform | The 10/14 demo uses Android; the iOS version follows after the demo | Decided | [0019](./decisions/0019-android-first-demo.md) |
-| D21 ★ | How we use Claude | **Development** (Claude Code): Hannes uses a personal Claude Max subscription, the collaborator uses a gifted free one-week trial pass. **API**: considered after the 10/14 demo, if we get free Startup credits. Subscriptions include no API usage, yet in-app extraction and the evaluation script both call the API; see 7.2 for the pre-demo gap | Development part decided; **API part open** | [0020](./decisions/0020-claude-access.md) |
+| D21 | How we use Claude | **Development** (Claude Code): Hannes uses a Claude Max subscription; mica uses a trial pass that expires on 10/2 and then switches to Pro. **API**: option A, prepaid through Hannes's Startup account, for evaluation, debugging and the demo | Decided | [0020](./decisions/0020-claude-access.md), [0022](./decisions/0022-prepaid-api-before-demo.md) |
+| D22 | CI | Flutter, Dart and Python use the current latest stable releases, pinned to exact versions; gitleaks runs in CI as the command-line tool (no license needed); commit prefixes are standardized and the body must include `Refs:` with the task ID; once CI exists, its jobs become required checks on main. Version baseline in ADR 0023 | Decided | [0023](./decisions/0023-ci-architecture.md) |
 
-★ = blocks key tasks; the sooner, the better.
 
 ---
 
@@ -239,7 +239,7 @@ Full rules in [ADR 0012](./decisions/0012-bucket-object-layout.md). Highlights:
 
 ## 4. Hours, dependencies and tasks
 
-This section only estimates hours and lays out dependencies; it **does not set a schedule or assign owners**. The two of you arrange those yourselves; once owners are agreed, fill them into the "Owner" column of the task tables and into CODEOWNERS.
+This section estimates hours and lays out dependencies; it **does not set a schedule**, which the two of you arrange yourselves. Owners are in 4.3 and in the "Owner" column of the task tables.
 
 ### 4.1 Hours summary
 
@@ -258,6 +258,13 @@ This section only estimates hours and lays out dependencies; it **does not set a
 | PR review | About 22 PRs × 0.4 h | ~9 |
 | **Total** | | **~116** |
 
+Split by person (review excluded; tasks done by both count half for each):
+
+| Owner | Contents | Person-hours |
+| --- | --- | --- |
+| Hannes | Half of G-1 and G-3, G-2; Phase 0 (half of P0-4 and P0-5); C-1 – C-5; skeleton and CI (P1-1, P1-2); Track A; half of I-1, I-2, DEMO-1 | ~68 |
+| mica | Half of G-1 and G-3; half of P0-4 and P0-5; C-R; Track B; half of I-1, I-2, DEMO-1 | ~39 |
+
 Split by convergence point:
 
 | Span | Contents | Person-hours |
@@ -267,7 +274,7 @@ Split by convergence point:
 | M0 → M2 (Feature freeze) | Track A + Track B + I-1 + I-2 | 64.5 |
 | M2 → demo | DEMO-1 | 4 |
 
-**Critical path** (the part that can only run serially and cannot be shortened by adding people): G-1 → C-1 → C-2 → C-4 → C-5 → C-R → P1-4 / P1-11 (these two can be split between the two of you and run in parallel) → P1-12 → P1-14 → I-1 → I-2 → DEMO-1, about **38–42 hours**. The P1-1 skeleton must be done before C-4 but can run in parallel with C-1 and C-2. So the shortest calendar time depends mainly on how many hours per day the person on the critical path can put in.
+**Critical path** (the part that can only run serially and cannot be shortened by adding people): G-1 → C-1 → C-2 → P1-1 → C-4 → C-5 → C-R → P1-4 → P1-11 → P1-12 → P1-14 → I-1 → I-2 → DEMO-1, about **45 hours**. Everything except C-R (mica) is on Hannes; P1-1, P1-4 and P1-11 are all Hannes's and therefore run serially, and the P1-1 skeleton must be merged before C-4. So the shortest calendar time depends mainly on how many hours per day Hannes can put in, and on how fast contract PRs are reviewed.
 
 ### 4.2 Demo route (must work before 10/14)
 
@@ -275,7 +282,7 @@ On the demo device (**Android**, D20), perform the following live, in order:
 
 1. **Offline scan of a cached product**: in airplane mode, scan a cached product; the portion screen appears and the entry is logged.
 2. **OFF hit**: online, scan a product that is in OFF but not cached locally; logged in one step.
-3. **Capture → Claude extraction → confirm screen** (the core of the demo; needs API credit, see D21 and 7.2 item 4): scan a product that is not in OFF, photograph the nutrition label, and reach the confirm screen, where fields that fail validation or have low confidence are highlighted. After changing a value, validation reruns immediately (e.g. change 12 to 1.2 and Atwater turns red at once). Confirm and log.
+3. **Capture → Claude extraction → confirm screen** (the core of the demo; the API is prepaid through Hannes's Startup account, see D21): scan a product that is not in OFF, photograph the nutrition label, and reach the confirm screen, where fields that fail validation or have low confidence are highlighted. After changing a value, validation reruns immediately (e.g. change 12 to 1.2 and Atwater turns red at once). Confirm and log.
 4. **Daily summary**: show the totals and the entry list, delete one entry.
 5. **Bucket**: open the B2 console and show the original image, derived image, `.raw.json` and `_confirmed.v1.json` from that capture.
 
@@ -290,7 +297,7 @@ On the demo device (**Android**, D20), perform the following live, in order:
 
 ### 4.3 Two parallel tracks and convergence points
 
-The work splits by dependency into two tracks that can run in parallel. The shared contract (C-1 – C-5) is first completed by one person and reviewed by the other; once the contract is merged, the two tracks run in parallel. Who takes each track and each contract task is to be agreed between the two of you (7.2).
+The work splits by dependency into two tracks that can run in parallel: **Hannes owns Track A, mica (`hyhcrh`) owns Track B**. Hannes drafts the shared contract (C-1 – C-5) and mica reviews it; the contract drafts (especially the data-structure parts C-1, C-2, C-5) are planned for review on 9/27–9/28. Once the contract is merged, the two tracks run in parallel. Hannes owns the Phase 0 tasks that had no owner, and also owns the skeleton and CI (P1-1, P1-2).
 
 ```mermaid
 flowchart LR
@@ -302,8 +309,8 @@ flowchart LR
   P11 --> C4
   C4 --> C5[C-5 drift tables and triggers]
   C5 --> M0((M0 Contract merged))
-  M0 --> A[Track A: evaluation → normalization and validation → VlmClient → confirm screen]
-  M0 --> B[Track B: repositories → scan OFF portion → capture screen → upload → summary]
+  M0 --> A[Track A · Hannes: evaluation → normalization and validation → VlmClient → confirm screen]
+  M0 --> B[Track B · mica: repositories → scan OFF portion → capture screen → upload → summary]
   A --> M1((M1 First end-to-end))
   B --> M1
   M1 --> M2((M2 Feature freeze))
@@ -329,59 +336,59 @@ flowchart LR
 
 ### 4.4 Task tables
 
-"Owner" column: `Both` means both of you take part; `TBD` is filled in once the division of work is agreed. "Est. (h)" is in person-hours; tasks marked "Both" are written as "per person + per person".
+"Owner" column: `Hannes` and `mica` are the owners; `Both` means both of you take part; `TBD` means not assigned yet. "Est. (h)" is in person-hours; tasks marked "Both" are written as "per person + per person".
 
 #### Preparation (G)
 
 | Task | Contents | Owner | Depends on | Est. (h) |
 | --- | --- | --- | --- | --- |
-| G-1 | Decide the division of work (section 7.2; D16 is decided) | Both | — | 1+1 |
-| G-2 | GitHub: set up branch protection and rebase-only per the table in CONTRIBUTING; create an issue for every task and a Project board; update CODEOWNERS once the division of work is agreed | TBD | G-1 | 1.5 |
-| G-3 | Development tools: Hannes uses Claude Max; the collaborator activates the one-week trial pass (valid 7 days: activate it when the work starts and agree beforehand what happens when it expires). Once API access is enabled (D21): create the dedicated workspace, set the monthly limit, one key per person | Both | — | 0.5 |
+| G-1 | Decide D16, the division of work and D21 | Both | — | 1+1 |
+| G-2 | GitHub: set up branch protection and rebase-only per the table in CONTRIBUTING; create an issue for every task and a Project board; update CODEOWNERS once the division of work is agreed | Hannes | G-1 | 1.5 |
+| G-3 | Development tools: Hannes uses Claude Max; mica uses the trial pass (expires 10/2), then switches to Pro. API (D21, ADR 0022): create a dedicated NutriScan workspace under Hannes's Startup account, set the monthly limit, one key per person (distributed through the password manager) | Both | — | 0.5 |
 
 #### Phase 0 · Validation
 
 | Task | Contents | Owner | Depends on | Est. (h) |
 | --- | --- | --- | --- | --- |
-| P0-1 | Collect 30+ barcodes from shopping receipts (including Rewe / Lidl / Kaufland / Alnatura private labels and Asian products) | TBD | — | 1 |
-| P0-2 | `schema/tools/off_probe.py` measures the hit rate, written up in `docs/notes/off-hit-rate.md`; also picks the "OFF hit" and "not in OFF" products for the demo | TBD | P0-1 | 1.5 |
-| P0-3 | BLS field notes | TBD | — | **Post-demo** |
+| P0-1 | Collect 30+ barcodes from shopping receipts (including Rewe / Lidl / Kaufland / Alnatura private labels and Asian products) | Hannes | — | 1 |
+| P0-2 | `schema/tools/off_probe.py` measures the hit rate, written up in `docs/notes/off-hit-rate.md`; also picks the "OFF hit" and "not in OFF" products for the demo | Hannes | P0-1 | 1.5 |
+| P0-3 | BLS field notes | Hannes | — | **Post-demo** |
 | P0-4 | 30+ evaluation photos, **supermarket or products already at home are both fine**, each of you shoots half; cover per 100g / per serving columns, kJ/kcal side by side, glare, curved packaging, small print, at least 3 non-German labels; strip EXIF before committing | Both | — | 1.5+1.5 |
 | P0-5 | Each of you enters the ground truth for the half you shot (seven core fields + reference quantity) | Both | P0-4 | 1.5+1.5 |
-| P0-6 | B2 hands-on testing, results written into ADR 0001: deletion with the write-only key is refused; a same-name PUT creates a new version and the old version remains; behavior of the hide operation; whether this key can modify lifecycle rules. Create one key per person | TBD | — | 2 |
-| P0-7 | `docs/LICENSES.md`; OFF (ODbL) data attribution in the app (OFF data is shown during the demo) | TBD | — | 0.5 |
+| P0-6 | B2 hands-on testing, results written into ADR 0001: deletion with the write-only key is refused; a same-name PUT creates a new version and the old version remains; behavior of the hide operation; whether this key can modify lifecycle rules. Create one key per person | Hannes | — | 2 |
+| P0-7 | `docs/LICENSES.md`; OFF (ODbL) data attribution in the app (OFF data is shown during the demo) | Hannes | — | 0.5 |
 
 #### Shared contract (C): done by one person, reviewed by the other, in separate PRs
 
 | Task | Contents | Owner | Depends on | Est. (h) |
 | --- | --- | --- | --- | --- |
-| C-1 | `schema/nutrients.yaml`: seven core fields + fiber, sodium, added sugar, etc.; key, unit, German label order, parent field, OFF mapping (EuroFIR / USDA mappings added after P0-3) | TBD | G-1 | 3 |
-| C-2 | Pydantic VLM output v1; generate both the standard and the Claude-variant JSON Schema (3.6); `live` acceptance test | TBD | C-1, C-3 | 3 |
-| C-3 | `schema/eval/models.yaml` (3.7), each row verified against the official docs, with link and date | TBD | — | 0.5 |
-| C-4 | codegen: `nutrients.g.dart`, `models.g.dart`, both JSON Schemas; consistency check in CI | TBD | C-1 – C-3, P1-1 | 3 |
-| C-5 | drift tables, CHECKs, append-only triggers (DELETE + UPDATE of immutable columns), UUID primary keys, migration test framework; the cross-track interfaces and stub implementations from 4.3; `BucketKeys` | TBD | C-4, P1-1 | 6 |
-| C-R | Review C-1 – C-5 | The person who did not write the contract | — | 2 |
+| C-1 | `schema/nutrients.yaml`: seven core fields + fiber, sodium, added sugar, etc.; key, unit, German label order, parent field, OFF mapping (EuroFIR / USDA mappings added after P0-3) | Hannes | G-1 | 3 |
+| C-2 | Pydantic VLM output v1; generate both the standard and the Claude-variant JSON Schema (3.6); `live` acceptance test | Hannes | C-1, C-3 | 3 |
+| C-3 | `schema/eval/models.yaml` (3.7), each row verified against the official docs, with link and date | Hannes | — | 0.5 |
+| C-4 | codegen: `nutrients.g.dart`, `models.g.dart`, both JSON Schemas; consistency check in CI | Hannes | C-1 – C-3, P1-1 | 3 |
+| C-5 | drift tables, CHECKs, append-only triggers (DELETE + UPDATE of immutable columns), UUID primary keys, migration test framework; the cross-track interfaces and stub implementations from 4.3; `BucketKeys` | Hannes | C-4, P1-1 | 6 |
+| C-R | Review C-1 – C-5 | mica | — | 2 |
 
 #### Skeleton and CI
 
 | Task | Contents | Owner | Depends on | Est. (h) |
 | --- | --- | --- | --- | --- |
-| P1-1 | `flutter create` with package name `de.belvast.nutriscan` (D1); `flutter_lints`, Riverpod, drift, `mobile_scanner`, `camera`; Chinese and English ARB files; `secrets.example.json` (with a `contributor` field whose value is the GitHub username; `.gitignore` is already at the repository root); the directory structure from section 2. Only Android is brought up before the demo | TBD | — | 3 |
-| P1-2 | Minimal CI (one workflow): `flutter analyze && flutter test`, `ruff && pytest`, codegen diff, gitleaks, commit message prefix check | TBD | P1-1 | 2.5 |
+| P1-1 | `flutter create` with package name `de.belvast.nutriscan` (D1); `flutter_lints`, Riverpod, drift, `mobile_scanner`, `camera`; Chinese and English ARB files; `secrets.example.json` (with a `contributor` field whose value is the GitHub username; `.gitignore` is already at the repository root); the directory structure from section 2. Only Android is brought up before the demo | Hannes | — | 3 |
+| P1-2 | Minimal CI (one workflow, ADR 0023): Flutter, Dart, Python and gitleaks pinned to the version baseline in ADR 0023; `flutter analyze && flutter test`, `ruff && pytest`, codegen diff, gitleaks command-line tool, commit message check (prefix + `Refs:` in the body); after merging, add its jobs as required checks on main | Hannes | P1-1 | 2.5 |
 
 #### Track A: schema, VLM, evaluation, confirm screen
 
 | Task | Contents | Owner | Depends on | Est. (h) |
 | --- | --- | --- | --- | --- |
-| P05-3 | Prompt `vlm_extract.v1.md` (kJ/kcal side by side, indented "davon" sub-items, decimal comma, "<0,5 g") | TBD | C-2 | 2 |
-| P05-4 | Evaluation script `schema/eval/run.py` (Claude via the official Python SDK, models read from `models.yaml`); metrics in the table below | TBD | C-2, C-3, P0-5 | 5 |
-| P05-5 | Run the evaluation matrix, write the results into ADR 0002 (model, effort, confidence threshold, validation thresholds), update `app_default` in `models.yaml` | TBD | P05-4 | 1.5 |
-| P1-4 | `normalize.dart` + `validate.dart` with unit tests (3.2, 3.3; evaluation ground truth as fixtures; dedicated "12 → 1.2" case) | TBD | C-1, C-4 | 3.5 |
-| P1-11 | `VlmClient`: calls the Messages API over HTTP; Claude-variant schema; hand-written parser classes + consistency test; checks `stop_reason`; records token counts and latency; 25 s timeout and cancel | TBD | C-2, C-4, C-5 | 4 |
-| P1-12 | Confirm/edit screen: German label order, the rest collapsed; original image thumbnail; original value + original reference quantity + normalized value; low confidence and validation failures share one highlight style with the reason spelled out; validation reruns on every edit; cannot submit until every highlighted field is confirmed one by one; one-tap confirm when everything passes; "unreadable" entry point | TBD | P1-4, P1-11 | 6.5 |
-| P1-13 | Manual input mode (same screen, `provenance = manual`) | TBD | P1-12 | 1.5 |
-| P1-14 | Transactional write after confirmation (`nutrient_records` + `nutrient_values`), and enqueue all objects from 3.8 | TBD | P1-12, C-5 | 3 |
-| P1-16 | Widget tests: cannot submit while highlighted fields are unconfirmed; "12 → 1.2" turns red immediately | TBD | P1-12 | 2 |
+| P05-3 | Prompt `vlm_extract.v1.md` (kJ/kcal side by side, indented "davon" sub-items, decimal comma, "<0,5 g") | Hannes | C-2 | 2 |
+| P05-4 | Evaluation script `schema/eval/run.py` (Claude via the official Python SDK, models read from `models.yaml`); metrics in the table below | Hannes | C-2, C-3, P0-5 | 5 |
+| P05-5 | Run the evaluation matrix, write the results into ADR 0002 (model, effort, confidence threshold, validation thresholds), update `app_default` in `models.yaml` | Hannes | P05-4 | 1.5 |
+| P1-4 | `normalize.dart` + `validate.dart` with unit tests (3.2, 3.3; evaluation ground truth as fixtures; dedicated "12 → 1.2" case) | Hannes | C-1, C-4 | 3.5 |
+| P1-11 | `VlmClient`: calls the Messages API over HTTP; Claude-variant schema; hand-written parser classes + consistency test; checks `stop_reason`; records token counts and latency; 25 s timeout and cancel | Hannes | C-2, C-4, C-5 | 4 |
+| P1-12 | Confirm/edit screen: German label order, the rest collapsed; original image thumbnail; original value + original reference quantity + normalized value; low confidence and validation failures share one highlight style with the reason spelled out; validation reruns on every edit; cannot submit until every highlighted field is confirmed one by one; one-tap confirm when everything passes; "unreadable" entry point | Hannes | P1-4, P1-11 | 6.5 |
+| P1-13 | Manual input mode (same screen, `provenance = manual`) | Hannes | P1-12 | 1.5 |
+| P1-14 | Transactional write after confirmation (`nutrient_records` + `nutrient_values`), and enqueue all objects from 3.8 | Hannes | P1-12, C-5 | 3 |
+| P1-16 | Widget tests: cannot submit while highlighted fields are unconfirmed; "12 → 1.2" turns red immediately | Hannes | P1-12 | 2 |
 
 **P05-4 evaluation metrics** (every call records input / output token counts; cost is computed from the prices in `models.yaml`):
 
@@ -399,14 +406,14 @@ flowchart LR
 
 | Task | Contents | Owner | Depends on | Est. (h) |
 | --- | --- | --- | --- | --- |
-| P1-5 | Repositories: implementations of Product / OFF cache, Log, UploadQueue (interfaces defined in C-5) | TBD | C-5 | 4 |
-| P1-6 | Scan screen: `mobile_scanner` 7.x, scanning starts on open, vibration on hit | TBD | P1-1 | 3 |
-| P1-7 | `OffClient`: field trimming, 4 s timeout, empty `nutriments` counts as a miss; written with `provenance = off`, raw response kept | TBD | P1-5 | 3 |
-| P1-8 | Portion screen: g and "serving" (when serving information exists); default = the last logged portion | TBD | P1-5 | 2 |
-| P1-9 | Lookup flow: local → OFF → capture route; a one-line notice per branch | TBD | P1-6, P1-7 | 2 |
-| P1-10 | Capture screen and photo processing (3.5): move out of the temp directory, bake orientation, strip EXIF, original + derived image, sha256, write `photos` | TBD | C-4, C-5 | 4 |
-| P1-17 | `BucketClient` (S3-compatible PUT, using an existing SigV4 package) + simple upload worker | TBD | C-5, P0-6 | 4 |
-| P1-19 | Daily summary: totals, list, soft delete; unit test "total = sum of each entry converted by portion" | TBD | P1-5 | 3.5 |
+| P1-5 | Repositories: implementations of Product / OFF cache, Log, UploadQueue (interfaces defined in C-5) | mica | C-5 | 4 |
+| P1-6 | Scan screen: `mobile_scanner` 7.x, scanning starts on open, vibration on hit | mica | P1-1 | 3 |
+| P1-7 | `OffClient`: field trimming, 4 s timeout, empty `nutriments` counts as a miss; written with `provenance = off`, raw response kept | mica | P1-5 | 3 |
+| P1-8 | Portion screen: g and "serving" (when serving information exists); default = the last logged portion | mica | P1-5 | 2 |
+| P1-9 | Lookup flow: local → OFF → capture route; a one-line notice per branch | mica | P1-6, P1-7 | 2 |
+| P1-10 | Capture screen and photo processing (3.5): move out of the temp directory, bake orientation, strip EXIF, original + derived image, sha256, write `photos` | mica | C-4, C-5 | 4 |
+| P1-17 | `BucketClient` (S3-compatible PUT, using an existing SigV4 package) + simple upload worker | mica | C-5, P0-6 | 4 |
+| P1-19 | Daily summary: totals, list, soft delete; unit test "total = sum of each entry converted by portion" | mica | P1-5 | 3.5 |
 
 #### Integration and demo
 
@@ -448,12 +455,12 @@ flowchart LR
 
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
-| About 40 hours of serial work on the critical path (4.1) | The demo core, F2, is not ready in time | Schedule critical-path tasks first; split P1-4 and P1-11 between the two of you; use M0 / M1 as progress checkpoints |
+| The critical path is about 42 hours, all on Hannes except C-R (4.1) | The demo core, F2, is not ready in time | Contract drafts submitted on 9/27–9/28; contract PRs reviewed first; M0 / M1 as progress checkpoints |
 | Unreliable network at the demo venue | Demo route steps 2, 3, 5 fail | Phone hotspot; offline route step 1 needs no network; backup video |
 | Slow Claude responses on stage | Audience waits | Choose effort based on evaluation results; the confirm screen has a clear waiting state and a cancel button; backup video |
 | VLM confidence is unreliable | Fields that should be highlighted are not | Rule validation is the main gate; silent error rate is the precondition for one-tap confirm |
-| No API credit before the demo (D21) | The demo core (route step 3) and the evaluation (P05-4) cannot run; ADR 0002 has no data to decide on | 7.2 item 4, decided before P05-4 and P1-11 start |
-| The collaborator's trial pass lasts only 7 days | Loss of Claude Code roughly a week before the demo | Activate it for the critical work; agree on the plan after expiry in advance |
+| API costs higher than expected (D21) | The prepaid credit runs out early | Workspace monthly limit; estimate the evaluation matrix cost from `models.yaml` before running it |
+| 9-hour time difference | PRs wait longer for review | Review within 24 hours of a PR being opened as a guideline; contract PRs first (CONTRIBUTING section 8) |
 | iOS deferred until after the demo (D20) | Platform differences surface when iOS is added (camera, permissions, signing) | No Android-specific logic in the code; `mobile_scanner` verified to use Apple Vision on iOS; schedule separate iOS tasks after the demo |
 | Opus 5.5 / Sonnet 5 on Bedrock do not support structured outputs | The EU route can only go through Vertex AI | See ADR 0015 |
 | Both people change the shared contract at the same time | Conflicts, version number collisions | Contract PRs submitted separately, first merged wins (CONTRIBUTING section 5) |
@@ -484,15 +491,16 @@ flowchart LR
 16. **B2's hide operation may only need write permission**: if P0-6 confirms this, a leaked write-only key could hide files (old versions remain). This is recorded as a risk in ADR 0001.
 17. **The demo covers Android only** (D20): the PRD platform requirement (one codebase for Android and iOS) is unchanged; on-device iOS verification moves to after the demo.
 18. **The cloud sync trigger is met** (D19): the PRD treated a "second real user" as a future event; the collaborator now is that second real user.
-19. **No API access during development** (D21): development runs on Claude subscriptions; the API is decided after the demo, depending on Startup credits. The pre-demo API gap is 7.2 item 4.
+19. **The API is prepaid through Hannes's Startup account** (D21): for evaluation, debugging and the demo; development runs on Claude subscriptions.
 
-### 7.2 Items for the two of you to decide
+### 7.2 Open and deferred items
 
-| # | Item | Notes | Deadline |
+| # | Item | Notes | When |
 | --- | --- | --- | --- |
-| 1 | **Division of work** | The two tracks, the author of the shared contract (C-1 – C-5), and the owner of each task; once agreed, fill in the "Owner" column in 4.4 and split owners by directory in CODEOWNERS | Before contract work starts |
-| 2 | **When to start phase 3 (cloud sync)** | D19 means the PRD trigger is met. Recommend planning it separately after the demo and leaving it untouched before. Both of you are developers, so the server-side proxy milestone (D17) is not triggered by this | Post-demo |
-| 3 | **The pre-demo API gap** (D21) | Claude subscriptions [do not include API or Console usage](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console), yet in-app Claude extraction (demo route step 3) and the evaluation script (P05-4) both call the Messages API. Options: **A.** Prepay a small Console balance now, only for evaluation, debugging and the demo; a rough estimate from the `models.yaml` prices is about a dozen dollars per full evaluation run and a few tens of dollars in total before the demo; switch once credits arrive. **B.** No API calls before the demo: demo route step 3 becomes manual input plus a recording, evaluation and model selection move after the demo, and the demo loses its core. **C.** Run the evaluation script through the Claude Agent SDK on the [monthly Agent SDK credit that comes with the Max plan](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan) (meant for individual experimentation); its call path differs from the app's Messages API calls, so results are only a rough check and cannot back ADR 0002, and the app itself still needs the API | Before P05-4 and P1-11 start |
+| 1 | **Demo-day arrangements** | The application to attend the event is still pending. Once approved, decide who presents, whose Android device is used, who brings the physical products, the backup video and the network hotspot | Once the event is approved |
+| 2 | **When to start phase 3 (cloud sync)** | D19 means the PRD trigger is met. Deferred; planned separately after the demo or event. Both of you are developers, so the server-side proxy milestone (D17) is not triggered by this | Post-demo |
+| 3 | **Post-demo replanning** | The iOS version, the deferred items listed in 4.2, the long-term API plan. Deferred; planned separately after the demo or event | Post-demo |
+| 4 | **Revisiting the license and contribution terms** | Triggers from ADR 0021: before accepting external contributions, before commercialization or phase 5 | When triggered |
 
 ### 7.3 D16: code license and contribution terms (comparison kept for the record)
 
