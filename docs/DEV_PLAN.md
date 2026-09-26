@@ -1,14 +1,14 @@
 # NutriScan MVP — 开发计划
 
-2026-09-26 · v0.4（两人协作版）
+2026-09-26 · v0.5（两人协作版）
 
 > 语言：中文（主版本）· [English](./DEV_PLAN.en.md)。改动须在同一个 PR 里同步两个版本。
 
 本文档把 [PRD](./PRD.md) 拆成可执行的任务。PRD 说明"做什么、为什么"，本文说明"按什么顺序、需要多少工时、做到什么程度算完"。本文**只放计划，不记录进度**：进度在 GitHub Issues / Projects 里跟踪（见 [CONTRIBUTING.md](../CONTRIBUTING.md)）。已定的设计决策各有一条 ADR，放在 [docs/decisions/](./decisions/)。
 
-**硬日期**：2026-10-14 在 Claude Founder House Stockholm 现场演示（Android 设备）；在此之前只做第 4.2 节"演示路线"里的内容。
+**目标日期**：2026-10-14 在 Claude Founder House Stockholm 现场演示（Android 设备）。活动参加申请尚待批准；无论是否获批，开发进度都以 10/14 为目标，演示当天的安排获批后再定。在此之前只做第 4.2 节"演示路线"里的内容。
 
-**成员**：EatWell Studio 的两位成员，GitHub 用户名 `hannesgao`（Hannes）与 `hyhcrh`（协作者）。分工待两人商议。
+**成员与分工**：EatWell Studio 的两位成员。`hannesgao`（Hannes）负责线 A、共享契约的起草、阶段 0 以及骨架与 CI；`hyhcrh`（mica）负责线 B 和共享契约的 review。详见 4.3。
 
 ---
 
@@ -28,17 +28,17 @@
 | D10 | 照片 | 原图和派生图都存（本地 + 桶），都记 sha256，都去 EXIF | 已定 | [0011](./decisions/0011-photo-original-and-derived.md) |
 | D11 | 桶对象布局 | 照片 + raw JSON + `_confirmed.v<N>.json`；无条码时的键规则；contributor 用 GitHub 用户名；raw JSON 记 contributor、model、effort、token 数 | 已定 | [0012](./decisions/0012-bucket-object-layout.md) |
 | D12 | 状态管理 / 本地库 | Riverpod + drift | 已定 | [0013](./decisions/0013-riverpod-drift.md) |
-| D13 | 密钥 | 启用 API 时（D21）：专用 Anthropic 工作区 + 工作区月度上限；每人各自的 key。现在就适用：`secrets.example.json`；密码管理器；CI 跑 gitleaks | 已定 | [0014](./decisions/0014-secrets-and-api-keys.md) |
+| D13 | 密钥 | Anthropic：在 Hannes 的 Startup 账号下建 NutriScan 专用工作区，设工作区月度上限，每人各自一把 key（D21）；`secrets.example.json`；密码管理器；CI 跑 gitleaks | 已定 | [0014](./decisions/0014-secrets-and-api-keys.md) |
 | D14 | VLM 型号 | 阶段 0.5 评测后定。候选：Opus 5.5 / Sonnet 5（Haiku 4.5 已移出候选）；Fable 5.1 只作准确率上限参照。标准依次为：静默错误率 → P90 ≤ 25 s → 成本 | 流程已定，**型号待评测** | [0002](./decisions/0002-vlm-model-selection.md) |
 | D15 | Mistral | 只进评测脚本，App 里演示前不实现；EU 退路中排第三 | 已定 | [0003](./decisions/0003-mistral-eval-only.md) |
-| D16 | 代码许可证 + 贡献条款 | MVP 阶段用 MIT，保证最大限度的编码自由；MVP 阶段不要求 DCO 或 CLA。代码归属见 D18 | 已定 | [0021](./decisions/0021-mit-license-for-mvp.md) |
+| D16 | 代码许可证 + 贡献条款 | MVP 阶段用 MIT，保证最大限度的编码自由；MVP 阶段不要求 DCO 或 CLA，也不接受外部代码贡献。代码归属见 D18 | 已定 | [0021](./decisions/0021-mit-license-for-mvp.md) |
 | D17 | 服务端代理里程碑 | EU 境内推理（Vertex AI EU）与"密钥不落客户端"合并为同一个里程碑，是任何对外分发和阶段 5 的前置条件 | 已定 | [0015](./decisions/0015-server-proxy-milestone.md) |
 | D18 | 代码归属 | 代码归 EatWell Studio 的两位成员共同所有 | 已定 | [0017](./decisions/0017-code-ownership.md) |
 | D19 | 协作者是否算"第二个真实用户" | 算。PRD 中引入云同步（阶段 3）的触发条件因此已满足，启动时机待定（7.2） | 已定 | [0018](./decisions/0018-collaborator-is-second-user.md) |
 | D20 | 演示平台 | 10/14 演示用 Android；iOS 版本演示后补齐 | 已定 | [0019](./decisions/0019-android-first-demo.md) |
-| D21 ★ | Claude 使用方式 | **开发**（Claude Code）：Hannes 用自己的 Claude Max 订阅，协作者用赠送的免费试用周卡。**API**：10/14 演示后若拿到 Startup 免费 credits 再考虑。订阅不含 API 额度，而 App 内提取和评测脚本都要调 API，演示前怎么办见 7.2 | 开发部分已定；**API 部分待定** | [0020](./decisions/0020-claude-access.md) |
+| D21 | Claude 使用方式 | **开发**（Claude Code）：Hannes 用 Claude Max 订阅；mica 用试用周卡，10/2 到期后改订 Pro。**API**：选方案 A，由 Hannes 的 Startup 账号预付，用于评测、调试和演示 | 已定 | [0020](./decisions/0020-claude-access.md)、[0022](./decisions/0022-prepaid-api-before-demo.md) |
+| D22 | CI | Flutter、Dart、Python 用当下最新的稳定版并固定版本号；gitleaks 以命令行方式跑在 CI 里（不需要 license）；提交前缀规范化，正文强制写 `Refs:` 任务号；CI 建成后把各 job 加入 main 的必需检查。版本基线见 ADR 0023 | 已定 | [0023](./decisions/0023-ci-architecture.md) |
 
-★ = 阻塞关键任务，越早定越好。
 
 ---
 
@@ -239,7 +239,7 @@ Claude 结构化输出的限制（[structured outputs 文档](https://platform.c
 
 ## 4. 工时、依赖与任务
 
-本节只估算工时、理清依赖，**不排日程，也不分配负责人**。具体安排由两人自行商定；负责人定下后，填入任务表的"负责"列和 CODEOWNERS。
+本节估算工时、理清依赖，**不排日程**，日程由两人自行安排。负责人见 4.3 与任务表的"负责"列。
 
 ### 4.1 工时汇总
 
@@ -258,6 +258,13 @@ Claude 结构化输出的限制（[structured outputs 文档](https://platform.c
 | PR review | 约 22 个 PR × 0.4 h | ~9 |
 | **合计** | | **~116** |
 
+按人拆分（不含 review；两人共做的任务各算一半）：
+
+| 负责人 | 内容 | 人·小时 |
+| --- | --- | --- |
+| Hannes | G-1、G-3 的一半，G-2；阶段 0（P0-4、P0-5 的一半）；C-1 ～ C-5；骨架与 CI（P1-1、P1-2）；线 A；I-1、I-2、DEMO-1 的一半 | ~68 |
+| mica | G-1、G-3 的一半；P0-4、P0-5 的一半；C-R；线 B；I-1、I-2、DEMO-1 的一半 | ~39 |
+
 按汇合点拆分：
 
 | 区间 | 内容 | 人·小时 |
@@ -267,7 +274,7 @@ Claude 结构化输出的限制（[structured outputs 文档](https://platform.c
 | M0 → M2（功能冻结） | 线 A + 线 B + I-1 + I-2 | 64.5 |
 | M2 → 演示 | DEMO-1 | 4 |
 
-**关键路径**（只能串行、加人也缩不短的部分）：G-1 → C-1 → C-2 → C-4 → C-5 → C-R → P1-4 / P1-11（这两项可以分给两人并行）→ P1-12 → P1-14 → I-1 → I-2 → DEMO-1，约 **38–42 小时**。P1-1 骨架要在 C-4 之前完成，但可以和 C-1、C-2 并行。所以最短日历时间主要取决于关键路径上的人每天能投入多少小时。
+**关键路径**（只能串行、加人也缩不短的部分）：G-1 → C-1 → C-2 → P1-1 → C-4 → C-5 → C-R → P1-4 → P1-11 → P1-12 → P1-14 → I-1 → I-2 → DEMO-1，约 **45 小时**。除 C-R（mica）外都在 Hannes 身上；P1-1、P1-4、P1-11 都由 Hannes 负责，只能串行，其中 P1-1 骨架要在 C-4 之前合并。所以最短日历时间主要取决于 Hannes 每天能投入多少小时，以及契约 PR 的 review 速度。
 
 ### 4.2 演示路线（10/14 前必须跑通）
 
@@ -275,7 +282,7 @@ Claude 结构化输出的限制（[structured outputs 文档](https://platform.c
 
 1. **离线扫已缓存商品**：飞行模式下扫一件已缓存商品，份量屏出现，记录成功。
 2. **OFF 命中**：联网扫一件 OFF 收录、但本地没缓存的商品，一步记录。
-3. **拍照 → Claude 提取 → 确认屏**（演示核心，需要 API 额度，见 D21 与 7.2 第 4 项）：扫一件 OFF 没收录的商品，拍营养成分表，进入确认屏，校验失败或低置信度的字段高亮。改一个值后校验即时重跑（例如把 12 改成 1.2，Atwater 立即标红）。确认后记录。
+3. **拍照 → Claude 提取 → 确认屏**（演示核心；API 由 Hannes 的 Startup 账号预付，见 D21）：扫一件 OFF 没收录的商品，拍营养成分表，进入确认屏，校验失败或低置信度的字段高亮。改一个值后校验即时重跑（例如把 12 改成 1.2，Atwater 立即标红）。确认后记录。
 4. **当日汇总**：展示合计与记录列表，删除一条。
 5. **桶**：打开 B2 控制台，展示刚才那次拍摄的原图、派生图、`.raw.json`、`_confirmed.v1.json`。
 
@@ -290,7 +297,7 @@ Claude 结构化输出的限制（[structured outputs 文档](https://platform.c
 
 ### 4.3 两条并行线与汇合点
 
-按依赖关系分成两条可以并行的线。共享契约（C-1 ～ C-5）先由一人完成、另一人 review，契约合并后两条线并行。每条线、每个契约任务由谁来做，待两人商议（7.2）。
+按依赖关系分成两条可以并行的线：**线 A 由 Hannes 负责，线 B 由 mica（`hyhcrh`）负责**。共享契约（C-1 ～ C-5）由 Hannes 起草、mica review；契约草案（尤其是数据结构相关的 C-1、C-2、C-5）计划在 9/27–9/28 提交 review。契约合并后两条线并行。阶段 0 中未分配的任务、骨架与 CI（P1-1、P1-2）也由 Hannes 负责。
 
 ```mermaid
 flowchart LR
@@ -302,8 +309,8 @@ flowchart LR
   P11 --> C4
   C4 --> C5[C-5 drift 表与触发器]
   C5 --> M0((M0 契约合并))
-  M0 --> A[线 A: 评测 → 归一化与校验 → VlmClient → 确认屏]
-  M0 --> B[线 B: 仓储 → 扫码 OFF 份量 → 拍照屏 → 上传 → 汇总]
+  M0 --> A[线 A · Hannes: 评测 → 归一化与校验 → VlmClient → 确认屏]
+  M0 --> B[线 B · mica: 仓储 → 扫码 OFF 份量 → 拍照屏 → 上传 → 汇总]
   A --> M1((M1 首次端到端))
   B --> M1
   M1 --> M2((M2 功能冻结))
@@ -329,59 +336,59 @@ flowchart LR
 
 ### 4.4 任务表
 
-"负责"列：`两人` 表示两人都参与；`待定` 等分工商定后填写。"估时"为人·小时；标"两人"的任务写成"每人 + 每人"。
+"负责"列：`Hannes`、`mica` 为负责人；`两人` 表示两人都参与；`待定` 表示尚未分配。"估时"为人·小时；标"两人"的任务写成"每人 + 每人"。
 
 #### 准备（G）
 
 | 任务 | 内容 | 负责 | 依赖 | 估时 |
 | --- | --- | --- | --- | --- |
-| G-1 | 拍板分工（7.2 节；D16 已定） | 两人 | — | 1+1 |
-| G-2 | GitHub：按 CONTRIBUTING 的表设置分支保护与 rebase-only；为每个任务建 issue 并建 Project 看板；分工定下后更新 CODEOWNERS | 待定 | G-1 | 1.5 |
-| G-3 | 开发工具：Hannes 用 Claude Max；协作者激活试用周卡（7 天有效，按开工时间激活，并提前想好到期后怎么办）。API 启用时（D21）再建专用工作区、设月度上限、每人发一把 key | 两人 | — | 0.5 |
+| G-1 | 拍板 D16、分工与 D21 | 两人 | — | 1+1 |
+| G-2 | GitHub：按 CONTRIBUTING 的表设置分支保护与 rebase-only；为每个任务建 issue 并建 Project 看板；分工定下后更新 CODEOWNERS | Hannes | G-1 | 1.5 |
+| G-3 | 开发工具：Hannes 用 Claude Max；mica 用试用周卡（10/2 到期），之后改订 Pro。API（D21，ADR 0022）：在 Hannes 的 Startup 账号下建 NutriScan 专用工作区、设月度上限，每人发一把 key（通过密码管理器分发） | 两人 | — | 0.5 |
 
 #### 阶段 0 · 验证
 
 | 任务 | 内容 | 负责 | 依赖 | 估时 |
 | --- | --- | --- | --- | --- |
-| P0-1 | 从购物小票里整理 30 个以上条码（含 Rewe / Lidl / Kaufland / Alnatura 自有品牌与亚洲商品） | 待定 | — | 1 |
-| P0-2 | `schema/tools/off_probe.py` 统计命中率，写 `docs/notes/off-hit-rate.md`；顺带挑出演示用的"OFF 命中"与"OFF 未收录"商品 | 待定 | P0-1 | 1.5 |
-| P0-3 | BLS 字段笔记 | 待定 | — | **演示后** |
+| P0-1 | 从购物小票里整理 30 个以上条码（含 Rewe / Lidl / Kaufland / Alnatura 自有品牌与亚洲商品） | Hannes | — | 1 |
+| P0-2 | `schema/tools/off_probe.py` 统计命中率，写 `docs/notes/off-hit-rate.md`；顺带挑出演示用的"OFF 命中"与"OFF 未收录"商品 | Hannes | P0-1 | 1.5 |
+| P0-3 | BLS 字段笔记 | Hannes | — | **演示后** |
 | P0-4 | 评测照片 30 张以上，**超市或家中现有商品都可以**，两人各拍一半；覆盖 per 100g / per serving 两列、kJ/kcal 并列、反光、弯曲、小字，德文以外至少 3 张；入库前去 EXIF | 两人 | — | 1.5+1.5 |
 | P0-5 | 各自为自己拍的那一半录入真值（七项核心字段 + 参考量） | 两人 | P0-4 | 1.5+1.5 |
-| P0-6 | B2 实测，结果写入 ADR 0001：只写 key 删除被拒；同名 PUT 生成新版本且旧版本仍在；hide 操作的行为；这把 key 能否修改生命周期规则。给每人各建一把 key | 待定 | — | 2 |
-| P0-7 | `docs/LICENSES.md`；App 内加 OFF（ODbL）数据来源署名（演示时会展示 OFF 数据） | 待定 | — | 0.5 |
+| P0-6 | B2 实测，结果写入 ADR 0001：只写 key 删除被拒；同名 PUT 生成新版本且旧版本仍在；hide 操作的行为；这把 key 能否修改生命周期规则。给每人各建一把 key | Hannes | — | 2 |
+| P0-7 | `docs/LICENSES.md`；App 内加 OFF（ODbL）数据来源署名（演示时会展示 OFF 数据） | Hannes | — | 0.5 |
 
 #### 共享契约（C）：一人完成，另一人 review，单独成 PR
 
 | 任务 | 内容 | 负责 | 依赖 | 估时 |
 | --- | --- | --- | --- | --- |
-| C-1 | `schema/nutrients.yaml`：七项核心字段 + 纤维、钠、添加糖等；主键、单位、德国标签顺序、父字段、OFF 映射（EuroFIR / USDA 映射在 P0-3 之后补） | 待定 | G-1 | 3 |
-| C-2 | Pydantic 版 VLM 输出 v1；生成标准版与 Claude 变体两份 JSON Schema（3.6）；`live` 验收测试 | 待定 | C-1、C-3 | 3 |
-| C-3 | `schema/eval/models.yaml`（3.7），数据从官方文档逐行核实，写上链接和日期 | 待定 | — | 0.5 |
-| C-4 | codegen：`nutrients.g.dart`、`models.g.dart`、两份 JSON Schema；CI 里的一致性检查 | 待定 | C-1 ～ C-3、P1-1 | 3 |
-| C-5 | drift 表、CHECK、append-only 触发器（DELETE + 不可变列 UPDATE）、UUID 主键、迁移测试框架；4.3 的跨线接口与桩实现；`BucketKeys` | 待定 | C-4、P1-1 | 6 |
-| C-R | review C-1 ～ C-5 | 契约作者以外的另一人 | — | 2 |
+| C-1 | `schema/nutrients.yaml`：七项核心字段 + 纤维、钠、添加糖等；主键、单位、德国标签顺序、父字段、OFF 映射（EuroFIR / USDA 映射在 P0-3 之后补） | Hannes | G-1 | 3 |
+| C-2 | Pydantic 版 VLM 输出 v1；生成标准版与 Claude 变体两份 JSON Schema（3.6）；`live` 验收测试 | Hannes | C-1、C-3 | 3 |
+| C-3 | `schema/eval/models.yaml`（3.7），数据从官方文档逐行核实，写上链接和日期 | Hannes | — | 0.5 |
+| C-4 | codegen：`nutrients.g.dart`、`models.g.dart`、两份 JSON Schema；CI 里的一致性检查 | Hannes | C-1 ～ C-3、P1-1 | 3 |
+| C-5 | drift 表、CHECK、append-only 触发器（DELETE + 不可变列 UPDATE）、UUID 主键、迁移测试框架；4.3 的跨线接口与桩实现；`BucketKeys` | Hannes | C-4、P1-1 | 6 |
+| C-R | review C-1 ～ C-5 | mica | — | 2 |
 
 #### 骨架与 CI
 
 | 任务 | 内容 | 负责 | 依赖 | 估时 |
 | --- | --- | --- | --- | --- |
-| P1-1 | `flutter create`，包名 `de.belvast.nutriscan`（D1）；`flutter_lints`、Riverpod、drift、`mobile_scanner`、`camera`；ARB 中英两份；`secrets.example.json`（含 `contributor` 字段，值为 GitHub 用户名；`.gitignore` 已在仓库根目录）；2 节的目录结构。演示前只调通 Android | 待定 | — | 3 |
-| P1-2 | 最简 CI（一个 workflow）：`flutter analyze && flutter test`、`ruff && pytest`、codegen diff、gitleaks、提交信息前缀检查 | 待定 | P1-1 | 2.5 |
+| P1-1 | `flutter create`，包名 `de.belvast.nutriscan`（D1）；`flutter_lints`、Riverpod、drift、`mobile_scanner`、`camera`；ARB 中英两份；`secrets.example.json`（含 `contributor` 字段，值为 GitHub 用户名；`.gitignore` 已在仓库根目录）；2 节的目录结构。演示前只调通 Android | Hannes | — | 3 |
+| P1-2 | 最简 CI（一个 workflow，ADR 0023）：Flutter、Dart、Python、gitleaks 按 ADR 0023 的版本基线固定版本号；`flutter analyze && flutter test`、`ruff && pytest`、codegen diff、gitleaks 命令行、提交信息检查（前缀 + 正文 `Refs:`）；合并后把各 job 加入 main 的必需检查 | Hannes | P1-1 | 2.5 |
 
 #### 线 A：schema、VLM、评测、确认屏
 
 | 任务 | 内容 | 负责 | 依赖 | 估时 |
 | --- | --- | --- | --- | --- |
-| P05-3 | prompt `vlm_extract.v1.md`（kJ/kcal 并列、"davon" 缩进子项、逗号小数点、"<0,5 g"） | 待定 | C-2 | 2 |
-| P05-4 | 评测脚本 `schema/eval/run.py`（Claude 用官方 Python SDK，型号从 `models.yaml` 读取），指标见下表 | 待定 | C-2、C-3、P0-5 | 5 |
-| P05-5 | 跑评测矩阵，写 ADR 0002 的结果（型号、effort、置信度阈值、校验阈值），更新 `models.yaml` 的 `app_default` | 待定 | P05-4 | 1.5 |
-| P1-4 | `normalize.dart` + `validate.dart` 及单测（3.2、3.3；评测真值作夹具；"12 → 1.2"专项用例） | 待定 | C-1、C-4 | 3.5 |
-| P1-11 | `VlmClient`：HTTP 调 Messages API；Claude 变体 schema；手写解析类 + 一致性测试；检查 `stop_reason`；记录 token 数与延迟；25 s 超时与取消 | 待定 | C-2、C-4、C-5 | 4 |
-| P1-12 | 确认/编辑屏：德国标签顺序、其余折叠；原图缩略；原始值 + 原始参考量 + 归一化值；低置信度与校验失败用同一种高亮并写明原因；编辑即时重跑校验；高亮字段未逐一确认时不能提交；全部通过时一键确认；"无法识别"入口 | 待定 | P1-4、P1-11 | 6.5 |
-| P1-13 | 手动输入模式（同一屏，`provenance = manual`） | 待定 | P1-12 | 1.5 |
-| P1-14 | 确认后的事务写入（`nutrient_records` + `nutrient_values`），并把 3.8 的全部对象入队 | 待定 | P1-12、C-5 | 3 |
-| P1-16 | Widget 测试：高亮字段未确认时不能提交；"12 → 1.2"立即标红 | 待定 | P1-12 | 2 |
+| P05-3 | prompt `vlm_extract.v1.md`（kJ/kcal 并列、"davon" 缩进子项、逗号小数点、"<0,5 g"） | Hannes | C-2 | 2 |
+| P05-4 | 评测脚本 `schema/eval/run.py`（Claude 用官方 Python SDK，型号从 `models.yaml` 读取），指标见下表 | Hannes | C-2、C-3、P0-5 | 5 |
+| P05-5 | 跑评测矩阵，写 ADR 0002 的结果（型号、effort、置信度阈值、校验阈值），更新 `models.yaml` 的 `app_default` | Hannes | P05-4 | 1.5 |
+| P1-4 | `normalize.dart` + `validate.dart` 及单测（3.2、3.3；评测真值作夹具；"12 → 1.2"专项用例） | Hannes | C-1、C-4 | 3.5 |
+| P1-11 | `VlmClient`：HTTP 调 Messages API；Claude 变体 schema；手写解析类 + 一致性测试；检查 `stop_reason`；记录 token 数与延迟；25 s 超时与取消 | Hannes | C-2、C-4、C-5 | 4 |
+| P1-12 | 确认/编辑屏：德国标签顺序、其余折叠；原图缩略；原始值 + 原始参考量 + 归一化值；低置信度与校验失败用同一种高亮并写明原因；编辑即时重跑校验；高亮字段未逐一确认时不能提交；全部通过时一键确认；"无法识别"入口 | Hannes | P1-4、P1-11 | 6.5 |
+| P1-13 | 手动输入模式（同一屏，`provenance = manual`） | Hannes | P1-12 | 1.5 |
+| P1-14 | 确认后的事务写入（`nutrient_records` + `nutrient_values`），并把 3.8 的全部对象入队 | Hannes | P1-12、C-5 | 3 |
+| P1-16 | Widget 测试：高亮字段未确认时不能提交；"12 → 1.2"立即标红 | Hannes | P1-12 | 2 |
 
 **P05-4 评测指标**（每次调用都记录输入 / 输出 token 数，成本由 `models.yaml` 的价格算出）：
 
@@ -399,14 +406,14 @@ flowchart LR
 
 | 任务 | 内容 | 负责 | 依赖 | 估时 |
 | --- | --- | --- | --- | --- |
-| P1-5 | Repository：Product / OFF 缓存、Log、UploadQueue 的实现（接口在 C-5 里定义） | 待定 | C-5 | 4 |
-| P1-6 | 扫码屏：`mobile_scanner` 7.x，打开即扫，命中震动 | 待定 | P1-1 | 3 |
-| P1-7 | `OffClient`：字段裁剪、4 s 超时、`nutriments` 为空视为未命中；以 `provenance = off` 写入，保存原始响应 | 待定 | P1-5 | 3 |
-| P1-8 | 份量屏：g 与"份"（有份量信息时）；默认值 = 上次记录的份量 | 待定 | P1-5 | 2 |
-| P1-9 | 查找链路：本地 → OFF → 拍照路由；各分支的一句提示 | 待定 | P1-6、P1-7 | 2 |
-| P1-10 | 拍照屏与照片处理（3.5）：移出临时目录、烘焙方向、去 EXIF、原图 + 派生图、sha256、写 `photos` | 待定 | C-4、C-5 | 4 |
-| P1-17 | `BucketClient`（S3 兼容 PUT，用现成的 SigV4 包）+ 简单上传 worker | 待定 | C-5、P0-6 | 4 |
-| P1-19 | 当日汇总：合计、列表、软删除；单测"合计 = 各条按份量折算之和" | 待定 | P1-5 | 3.5 |
+| P1-5 | Repository：Product / OFF 缓存、Log、UploadQueue 的实现（接口在 C-5 里定义） | mica | C-5 | 4 |
+| P1-6 | 扫码屏：`mobile_scanner` 7.x，打开即扫，命中震动 | mica | P1-1 | 3 |
+| P1-7 | `OffClient`：字段裁剪、4 s 超时、`nutriments` 为空视为未命中；以 `provenance = off` 写入，保存原始响应 | mica | P1-5 | 3 |
+| P1-8 | 份量屏：g 与"份"（有份量信息时）；默认值 = 上次记录的份量 | mica | P1-5 | 2 |
+| P1-9 | 查找链路：本地 → OFF → 拍照路由；各分支的一句提示 | mica | P1-6、P1-7 | 2 |
+| P1-10 | 拍照屏与照片处理（3.5）：移出临时目录、烘焙方向、去 EXIF、原图 + 派生图、sha256、写 `photos` | mica | C-4、C-5 | 4 |
+| P1-17 | `BucketClient`（S3 兼容 PUT，用现成的 SigV4 包）+ 简单上传 worker | mica | C-5、P0-6 | 4 |
+| P1-19 | 当日汇总：合计、列表、软删除；单测"合计 = 各条按份量折算之和" | mica | P1-5 | 3.5 |
 
 #### 集成与演示
 
@@ -448,12 +455,12 @@ flowchart LR
 
 | 风险 | 影响 | 应对 |
 | --- | --- | --- |
-| 关键路径约 40 小时串行工作（4.1） | 演示核心 F2 来不及 | 关键路径上的任务优先安排；P1-4 与 P1-11 分给两人并行；M0 / M1 作为进度检查点 |
+| 关键路径约 42 小时，除 C-R 外都在 Hannes 身上（4.1） | 演示核心 F2 来不及 | 契约草案 9/27–9/28 提交；契约 PR 优先 review；M0 / M1 作为进度检查点 |
 | 演示现场网络不可靠 | 演示路线 2、3、5 失败 | 手机热点；离线路线 1 不依赖网络；备份视频 |
 | 现场 Claude 响应慢 | 观众干等 | 按评测结果选 effort；确认屏有明确的等待态和取消按钮；备份视频 |
 | VLM 置信度不可信 | 该高亮的字段没高亮 | 以规则校验为主要闸门；静默错误率作为一键确认的前提 |
-| 演示前没有 API 额度（D21） | 演示核心（路线 3）和评测（P05-4）都跑不了；ADR 0002 的选型没有数据 | 7.2 第 4 项，在 P05-4、P1-11 开工前定下来 |
-| 协作者的试用周卡只有 7 天 | 演示前一周左右失去 Claude Code | 按关键工作的时间激活；到期后的方案提前商量 |
+| API 费用超出预期（D21） | 预付额度提前用完 | 工作区月度上限；评测矩阵先按 `models.yaml` 估算成本再跑 |
+| 9 小时时差 | PR 等待 review 的时间变长 | 原则上 PR 发布后 24 小时内 review；契约 PR 优先（CONTRIBUTING 第 8 节） |
 | iOS 推到演示之后（D20） | 补 iOS 时暴露平台差异（相机、权限、签名） | 代码不写 Android 专属逻辑；`mobile_scanner` 在 iOS 上已核实用 Apple Vision；演示后单独排 iOS 任务 |
 | Bedrock 上的 Opus 5.5 / Sonnet 5 不支持结构化输出 | EU 路线只能走 Vertex AI | 见 ADR 0015 |
 | 两人同时改共享契约 | 冲突、版本号撞车 | 契约 PR 单独提、先合先得（CONTRIBUTING 第 5 节） |
@@ -484,15 +491,16 @@ flowchart LR
 16. **B2 的 hide 操作可能只需要写权限**：若 P0-6 实测确认如此，泄露的只写 key 可以隐藏文件（旧版本仍在）。这一点记入 ADR 0001 的风险。
 17. **演示只做 Android**（D20）：PRD 的平台要求（Android 与 iOS 同一代码库）不变，iOS 真机验证推到演示之后。
 18. **云同步的触发条件已满足**（D19）：PRD 原本把"第二个真实用户"当作未来事件，现在协作者即是第二个真实用户。
-19. **开发期不开通 API**（D21）：开发用 Claude 订阅，API 等演示后视 Startup credits 再定；演示前的 API 缺口见 7.2 第 4 项。
+19. **API 由 Hannes 的 Startup 账号预付**（D21）：用于评测、调试和演示；开发用 Claude 订阅。
 
-### 7.2 需要你们两人决定的事项
+### 7.2 待定与搁置的事项
 
-| # | 事项 | 说明 | 截止 |
+| # | 事项 | 说明 | 何时 |
 | --- | --- | --- | --- |
-| 1 | **分工** | 两条线、共享契约（C-1 ～ C-5）的作者、各任务负责人；定下后填入 4.4 的"负责"列，并在 CODEOWNERS 里按目录细分 owner | 契约开工之前 |
-| 2 | **阶段 3（云同步）何时启动** | D19 使 PRD 的触发条件已满足。建议演示之后再单独规划，演示前不动。两位都是开发者，所以服务端代理里程碑（D17）并未因此触发 | 演示后 |
-| 3 | **演示前的 API 缺口**（D21） | Claude 订阅[不包含 API 与 Console 的使用额度](https://support.claude.com/en/articles/9876003-i-have-a-paid-claude-subscription-pro-max-team-or-enterprise-plans-why-do-i-have-to-pay-separately-to-use-the-claude-api-and-console)，而 App 内的 Claude 提取（演示路线 3）和评测脚本（P05-4）都要调 Messages API。可选：**A.** 现在在 Console 小额预付，只用于评测、调试和演示；按 `models.yaml` 的价格粗算，一次完整评测约十几美元，演示前合计约几十美元；演示后有 credits 再切换。**B.** 演示前不调 API：演示路线 3 改为手动输入加录屏，评测和选型推到演示后，演示核心会缺失。**C.** 评测脚本改用 Claude Agent SDK，走 Max 订阅附带的[Agent SDK 月度额度](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan)（面向个人实验）；但它的调用路径与 App 的 Messages API 不同，结果只能粗测，不能作为 ADR 0002 的依据，App 本身仍然需要 API | P05-4、P1-11 开工之前 |
+| 1 | **演示当天的安排** | 活动参加申请尚待批准。获批后再定谁上台、用谁的 Android 设备、谁带实物商品、备份视频和网络热点 | 活动获批后 |
+| 2 | **阶段 3（云同步）何时启动** | D19 已使 PRD 的触发条件满足。搁置，演示或活动之后单独规划。两位都是开发者，所以服务端代理里程碑（D17）并未因此触发 | 演示后 |
+| 3 | **演示后的重新规划** | iOS 版本、4.2 列出的推迟项、API 的长期方案。搁置，演示或活动之后单独规划 | 演示后 |
+| 4 | **许可证与贡献条款的重新评估** | ADR 0021 的触发时点：开始接受外部贡献之前、商业化或进入阶段 5 之前 | 触发时 |
 
 ### 7.3 D16：代码许可证与贡献条款（拍板时的对比记录）
 

@@ -2,6 +2,8 @@
 
 Two developers, a public repository, one monorepo. This file covers the human collaboration process; the rules for Claude Code are in [CLAUDE.md](./CLAUDE.md). If the two conflict, this file wins and CLAUDE.md must be fixed promptly.
 
+Members: `hannesgao` (Hannes) and `hyhcrh` (mica). **External code contributions are not accepted during the MVP phase** (ADR 0021); issues are welcome.
+
 ## 1. Task tracking
 
 - [DEV_PLAN](./docs/DEV_PLAN.en.md) contains the plan only, **never progress**. Progress lives in GitHub Issues / Projects, so the two of us never edit DEV_PLAN concurrently.
@@ -15,6 +17,7 @@ Two developers, a public repository, one monorepo. This file covers the human co
 - One task = one branch = one PR. Branch name: `<task-id>-<short-description>`, all lowercase, e.g. `p1-3-drift-tables`.
 - PR title: `<scope>: <summary> (<task-id>)`, e.g. `app: add drift tables and append-only triggers (P1-3)`. The description contains `Closes #<issue>`.
 - Fill in the [PR template](./.github/pull_request_template.md).
+- **Request the other member as reviewer explicitly** when opening a PR (e.g. `gh pr create --reviewer <other>`). CODEOWNERS does not request anyone when the author owns every touched directory.
 - Keep PRs small and complete. Anything found outside the task's scope becomes a new issue, not a drive-by change.
 - **Changes to shared contracts get their own PR**, never mixed with feature code. Shared contracts are: `schema/nutrients.yaml`, the VLM output schema, `schema/eval/models.yaml`, the drift schema, the provenance enum, and the bucket object-key rules.
 - **New design decisions start as an ADR PR** (`docs/decisions/`); code follows only after both of us approve. The ADR format is in [docs/decisions/README.md](./docs/decisions/README.md).
@@ -30,7 +33,7 @@ Configure in the GitHub repository settings (owner: DEV_PLAN task G-2):
 | Require a pull request before merging | On |
 | Required approvals | 1 (with two people, this means the other person approves every PR) |
 | Dismiss stale approvals when new commits are pushed | On |
-| Require status checks to pass | On, all CI jobs selected |
+| Require status checks to pass | On. The CI jobs become required checks once P1-2 is merged (ADR 0023); until then none is selected |
 | Require branches to be up to date before merging | On |
 | Require linear history | On |
 | Do not allow bypassing the above settings | On (admins cannot bypass either) |
@@ -43,17 +46,43 @@ About CODEOWNERS: [CODEOWNERS](./.github/CODEOWNERS) is used to request reviewer
 
 ## 3. Commits
 
-- Prefixes: `app:` / `api:` / `schema:` / `docs:` / `ci:`. One commit touches one layer; split cross-layer changes into several commits.
-- English, imperative mood, subject line at most 72 characters; the body names the task, e.g. `Refs: P1-3`.
+Format (ADR 0023):
+
+```
+<prefix>: <summary in imperative mood>
+
+<optional body>
+
+Refs: <task-id>[, <task-id> …]
+```
+
+- **Prefixes** (lowercase, exactly one per commit):
+
+  | Prefix | Scope |
+  | --- | --- |
+  | `app:` | Flutter client (`app/`) |
+  | `api:` | Batch processing layer (`api/`) |
+  | `schema:` | `schema/`: nutrient definitions, prompts, output schemas, codegen, evaluation |
+  | `docs:` | Documentation: PRD, DEV_PLAN, ADRs, README, CONTRIBUTING, agent rules, `LICENSE` |
+  | `ci:` | CI workflows, PR template, CODEOWNERS and other files under `.github/` |
+  | `chore:` | Repository-level housekeeping not covered above, e.g. `.gitignore`, editor configuration |
+
+- One commit touches one layer; split cross-layer changes into several commits.
+- Subject line: English, imperative mood, no trailing period, at most 72 characters including the prefix.
+- **The body must contain a `Refs:` line with the DEV_PLAN task ID(s)**, e.g. `Refs: P1-3` or `Refs: C-1, C-2`.
 - Every commit passes the tests on its own (rebase merge puts every commit on main).
-- CI checks the commit message prefix.
+- No tool attribution in commit messages: no `Co-Authored-By` trailer for AI tools, no "Generated with …" lines.
+- CI checks the prefix, the subject length and the `Refs:` line of every commit in a PR.
 
 ## 4. Directory ownership
 
-[CODEOWNERS](./.github/CODEOWNERS) is authoritative. The work split is not decided yet (DEV_PLAN §7.2), so for now both members own everything.
+[CODEOWNERS](./.github/CODEOWNERS) is authoritative; the split is explained in DEV_PLAN §4.3.
 
-- `schema/`, `docs/decisions/`, `CLAUDE.md`, `CONTRIBUTING.md`, `.github/`: always owned by both; every change needs the other person's review.
-- `app/` and `api/`: once the split is agreed, per-directory owners are added to CODEOWNERS. Changing a directory owned by the other person then requires either an explicit note in the issue or prior agreement.
+- **Track A (Hannes)**: `app/lib/domain/`, `app/lib/data/clients/vlm/`, `app/lib/features/confirm/`.
+- **Track B (mica)**: `app/lib/features/scan/`, `capture/`, `portion/`, `summary/`; `app/lib/data/repositories/`, `app/lib/data/clients/off/`, `app/lib/data/clients/bucket/`, `app/lib/data/upload/`.
+- **Shared contracts**: Hannes drafts, mica reviews. `schema/` and `app/lib/data/db/` are owned by both.
+- **Owned by both**: everything else, including `docs/decisions/`, `CLAUDE.md`, `CONTRIBUTING.md`, `.github/`.
+- Changing a directory owned by the other person requires either an explicit note in the issue or prior agreement.
 
 ## 5. Shared contracts and the drift schema
 
@@ -75,3 +104,10 @@ The repository is public.
 
 - Pin versions and commit `pubspec.lock` (same for Python lock files).
 - State the reason and license of every new dependency in the PR description. Licenses must be compatible with the project's MIT license (ADR 0021); copyleft licenses (GPL family) need an explicit decision first.
+
+## 8. Collaboration rhythm
+
+- **Reviews**: review and merge as quickly as practical, ideally within 24 hours of a PR being opened. This is a guideline, not a hard deadline: review when you have time. With the 9-hour time difference, a 24-hour window lets each of us review during our own day.
+- **Shared contract PRs first**: Hannes drafts the shared contracts (data structures first) and mica reviews them. Contract PRs get review priority because they are on the critical path.
+- **Progress sync**: one or two Google Meet calls every weekend.
+- **New decisions**: open an ADR PR first; code follows only after both of us approve it.

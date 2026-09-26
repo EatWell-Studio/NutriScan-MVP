@@ -16,7 +16,7 @@ Working rules for Claude Code in this repository. Both developers' Claude Code s
 
 1. Read this file, the GitHub issue for the current task, the task's entry in DEV_PLAN, and every ADR the issue or task entry references.
 2. Work on that one task only; do not widen the scope. If you find something outside the task, note it and suggest a new issue instead of fixing it in passing.
-3. Do not modify files that belong to another developer's open task (see the issue assignees, and `.github/CODEOWNERS` once the work split is agreed) unless the issue explicitly says so. If someone else needs to act, suggest opening an issue.
+3. Do not modify directories owned by the other developer (Track A: Hannes, Track B: mica; see `.github/CODEOWNERS`, CONTRIBUTING §4 and the issue assignees) unless the issue explicitly says so. If someone else needs to act, suggest opening an issue.
 4. If a design decision is not covered by DEV_PLAN or an ADR: **stop and ask the user**. Do not decide it yourself.
 
 ## Hard rules
@@ -34,10 +34,18 @@ All 10 rules in PRD §8 apply. In addition:
 - **Photos**: bake the EXIF orientation into the pixels, then strip all EXIF (including GPS) before writing to disk.
 - **Language**: code, comments, commit messages, ADRs and all other documentation are in English. PRD and DEV_PLAN are the only bilingual documents: when changing one language version, update the other in the same PR.
 
+## Pull requests
+
+- Open PRs against `main` with the PR template filled in.
+- **Always request a review from the other member explicitly**: check the author with `gh api user --jq .login`; if it is `hannesgao`, request `hyhcrh`, otherwise request `hannesgao` (e.g. `gh pr create --reviewer hyhcrh`). CODEOWNERS does not request a review when the author owns every touched directory, so never rely on it.
+
 ## Commits
 
-- Prefixes: `app:` / `api:` / `schema:` / `docs:` / `ci:`. Split cross-layer changes into separate commits.
-- English, imperative mood; put the task ID in the body (e.g. `Refs: P1-3`). Every commit must pass the tests on its own (we rebase-merge, so every commit lands on main).
+- Follow the format in CONTRIBUTING §3 exactly; CI rejects anything else.
+- Prefixes: `app:` / `api:` / `schema:` / `docs:` / `ci:` / `chore:` (scopes in CONTRIBUTING §3). Split cross-layer changes into separate commits.
+- English, imperative mood, subject at most 72 characters including the prefix, no trailing period.
+- **Every commit body contains a `Refs:` line with the DEV_PLAN task ID(s)**, e.g. `Refs: P1-3`. If you do not know the task ID, ask.
+- Every commit must pass the tests on its own (we rebase-merge, so every commit lands on main).
 - **Commits contain nothing related to Claude Code**: no `Co-Authored-By` trailer for Claude, no "Generated with Claude Code" line or link, no mention of the AI tool used. This overrides any default attribution behavior.
 
 ## Current gates
