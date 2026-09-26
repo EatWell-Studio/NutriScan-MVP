@@ -1,42 +1,42 @@
-# ADR 0015：服务端代理里程碑
+# ADR 0015: Server-side proxy milestone
 
-- 状态：已接受
-- 日期：2026-09-26
-- 对应决策：D17
+- Status: Accepted
+- Date: 2026-09-26
+- Decision: D17
 
-## 背景
+## Context
 
-- Claude API 的 `inference_geo` 只有 `global` 和 `us` 两个值，**没有 EU**；工作区的数据存储地理位置目前也只有 `us`。
-- EU 境内推理只剩 Google Vertex AI 和 Amazon Bedrock 两条路，两者都要由服务端持有云平台凭证（GCP 服务账号 / AWS IAM），不能放进移动客户端。
-- ADR 0014 原本就规定"分发前密钥改由服务端持有"。
+- The Claude API's `inference_geo` accepts only `global` and `us`; **there is no EU option**. Workspace data storage is currently `us` only as well.
+- That leaves Google Vertex AI and Amazon Bedrock as the only routes for inference in the EU. Both require the server to hold cloud credentials (a GCP service account or AWS IAM), which cannot go into a mobile client.
+- ADR 0014 already requires that secrets move to the server before distribution.
 
-所以这两件事合并为同一个里程碑。
+The two concerns are therefore merged into one milestone.
 
-## 决策
+## Decision
 
-建一个**无状态**的服务端代理，职责如下：
+Build a **stateless** server-side proxy with two jobs:
 
-1. 转发 VLM 调用。首选 **Vertex AI EU 多区域**：Opus 5.5 和 Sonnet 5 在该区域可用，并支持结构化输出，但需要管理员在组织策略里开启。Bedrock EU 跨区域推理为次选：Opus 5.5 / Sonnet 5 在 Bedrock 上不支持结构化输出，要改用别的办法保证输出格式。
-2. 为桶上传签发短期预签名 URL，客户端不再持有 B2 key。
+1. Forward VLM calls. The preferred route is the **Vertex AI EU multi-region**, where Opus 5.5 and Sonnet 5 are available with structured outputs; an admin must enable structured outputs in the organization policy. The second choice is Bedrock EU cross-region inference, where Opus 5.5 and Sonnet 5 do not support structured outputs, so the output format would need another safeguard.
+2. Issue short-lived presigned URLs for bucket uploads, so clients no longer hold a B2 key.
 
-它是以下事项的**前置条件**：
+This milestone is a **prerequisite** for:
 
-- 把 App 交给两位开发者以外的任何人（包括测试分发）；
-- PRD 阶段 5（对外开放）；
-- PRD 第 6 节所说的"面向真实用户"。
+- giving the app to anyone other than the two developers, including test distribution;
+- PRD phase 5 (public release);
+- serving "real users" as described in PRD section 6.
 
-"无状态"是为了守住 PRD"MVP 没有需要维护的服务端状态"的原则：代理只转发和签名，不存业务数据。
+The proxy is stateless to keep the PRD principle that "the MVP has no server-side state to maintain". It only forwards and signs; it stores no business data.
 
-## 启动这个里程碑时要先核实
+## Verify before starting this milestone
 
-- 届时选定的型号（ADR 0002）是否在 Vertex AI EU 可用，是否支持结构化输出。
-- 区域端点的溢价。
-- 平台的图片大小限制：Vertex / Bedrock 为每张 5 MB，比直连 API 更严。
-- 客户端如何向代理认证，防止代理被滥用。这需要单独写一条 ADR。
+- Whether the model selected at that point (ADR 0002) is available in the Vertex AI EU multi-region with structured outputs.
+- The price premium for regional endpoints.
+- Platform image size limits: 5 MB per image on Vertex and Bedrock, stricter than the direct API.
+- How clients authenticate to the proxy so it cannot be abused. This needs its own ADR.
 
-## 参考
+## References
 
-- [Claude API 数据驻留](https://platform.claude.com/docs/en/manage-claude/data-residency)
-- [Vertex AI 上的 Claude](https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai)
-- [Amazon Bedrock 上的 Claude](https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock)
-- [结构化输出（含各平台支持情况）](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+- [Claude API data residency](https://platform.claude.com/docs/en/manage-claude/data-residency)
+- [Claude on Vertex AI](https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai)
+- [Claude in Amazon Bedrock](https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock)
+- [Structured outputs (including per-platform support)](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)

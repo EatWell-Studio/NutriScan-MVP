@@ -1,20 +1,20 @@
-# ADR 0003：Mistral 只进评测脚本
+# ADR 0003: Mistral only in the evaluation script
 
-- 状态：已接受
-- 日期：2026-09-26
-- 对应决策：D15
+- Status: Accepted
+- Date: 2026-09-26
+- Decision: D15
 
-## 背景
+## Context
 
-Mistral 原本是 EU 数据驻留的退路。现在 EU 路线已经有 Vertex AI 和 Bedrock 两条（ADR 0015），而演示前的工作量已经超出容量。
+Mistral was originally the fallback for EU data residency. The EU route now has two other options, Vertex AI and Bedrock (ADR 0015), and the pre-demo scope is already large.
 
-## 决策
+## Decision
 
-- 保留 Mistral，但只放进 `schema/eval/run.py`，作为评测对照。它的适配器排在演示之后。
-- 演示前 App 里不实现 Mistral client。
-- EU 路线的顺位：① Vertex AI EU 多区域 → ② Bedrock EU 跨区域推理（受结构化输出限制）→ ③ Mistral。
+- Keep Mistral, but only in `schema/eval/run.py`, as an evaluation baseline. Its adapter is scheduled after the demo.
+- No Mistral client in the app before the demo.
+- EU route priority: ① Vertex AI EU multi-region → ② Bedrock EU cross-region inference (limited by structured-output support) → ③ Mistral.
 
-## 后果
+## Consequences
 
-- 共享的 prompt 与输出 schema 需要能适配 Mistral，这一点由评测脚本持续验证。
-- 真要启用 Mistral 时，App 端的 client 另开任务，并写新的 ADR。
+- The shared prompt and output schema must stay usable with Mistral. The evaluation script keeps checking this.
+- Enabling Mistral in the app later needs its own task and a new ADR.

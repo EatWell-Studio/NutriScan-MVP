@@ -1,22 +1,22 @@
-# ADR 0011：原图与派生图都存、去 EXIF
+# ADR 0011: Keep original and derived images, strip EXIF
 
-- 状态：已接受
-- 日期：2026-09-26
-- 对应决策：D10
+- Status: Accepted
+- Date: 2026-09-26
+- Decision: D10
 
-## 决策
+## Decision
 
-- 每次拍摄存两份：**原图**，以及**派生图**（送给模型的那一份）。本地和桶里都存两份，都记录 sha256。
-- raw JSON 里记下送给模型的是哪一份（`input_image_sha256`）。
-- **派生图的尺寸不超过所选型号的原生上限**，包括长边像素上限和视觉 token 上限（`⌈w/28⌉ × ⌈h/28⌉`），两个数都从 `schema/eval/models.yaml` 读取。任一超限，API 会先缩放再处理，那样"模型实际看到的字节"就和存档对不上了。上限以官方 vision 文档为准。
-- **两份都去掉 EXIF**（含 GPS，仓库是公开的）。去之前先按 EXIF Orientation 把旋转烘焙进像素；sha256 在去 EXIF 之后计算。
-- `camera` 插件拍出的照片在临时目录里，拍完立即移到应用文档目录。
+- Each capture keeps two files: the **original image** and the **derived image**, which is the one sent to the model. Both are stored locally and in the bucket, and both have a recorded sha256.
+- The raw JSON records which file was sent to the model (`input_image_sha256`).
+- **The derived image stays within the selected model's native limits.** There are two limits: the long-edge pixel limit and the visual-token limit (`⌈w/28⌉ × ⌈h/28⌉`). Both are read from `schema/eval/models.yaml`. If either limit is exceeded, the API downscales the image before processing, and the bytes the model actually sees no longer match the archive. The official vision docs are authoritative for these limits.
+- **Both files have their EXIF removed**, including GPS, because the repository is public. First apply the EXIF orientation to the pixels, then strip EXIF. The sha256 is computed after stripping.
+- The `camera` plugin saves photos to a temporary directory. Move each photo to the app documents directory immediately after capture.
 
-## 后果
+## Consequences
 
-- 存储与上传体积大约翻倍，自用规模下可以接受。
-- 换型号时，如果新型号的上限不同，就要从原图重新生成派生图；旧的派生图和 raw JSON 保留不动。
+- Storage and upload volume roughly double, which is acceptable at personal scale.
+- If a new model has different limits, regenerate the derived image from the original. Older derived images and raw JSON stay as they are.
 
-## 参考
+## References
 
-- [vision：图片尺寸与 token 计算](https://platform.claude.com/docs/en/build-with-claude/vision)
+- [Vision: image size and token calculation](https://platform.claude.com/docs/en/build-with-claude/vision)

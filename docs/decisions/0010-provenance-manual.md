@@ -1,23 +1,23 @@
-# ADR 0010：provenance 增加 `manual`
+# ADR 0010: Add `manual` to provenance
 
-- 状态：已接受
-- 日期：2026-09-26
-- 对应决策：D9
+- Status: Accepted
+- Date: 2026-09-26
+- Decision: D9
 
-## 背景
+## Context
 
-计划初稿建议把手动输入记为 `vlm_user`，再靠 `model = "manual"` 来区分。这样做有两个问题：
+The first draft of the plan suggested recording manual input as `vlm_user` and telling it apart by `model = "manual"`. That has two problems:
 
-- provenance 应该如实反映数据来源，而手动输入的数据里没有 VLM。
-- SQLite 修改 CHECK 约束需要重建表；重建表与三层数据的 append-only 触发器冲突。所以枚举必须一次定对。
+- Provenance should state where data really came from, and manually entered data involves no VLM.
+- Changing a CHECK constraint in SQLite requires rebuilding the table, and a rebuild conflicts with the append-only triggers on the three data layers. The enum has to be right the first time.
 
-## 决策
+## Decision
 
-- provenance 枚举为 `off` / `bls` / `usda` / `vlm_user` / `manual`。CHECK 约束在第一版表结构（C-5）里就写进去。
-- 手动输入时 `nutrient_records.extraction_id` 为空，不建 extraction 行。
-- 额外加一条 CHECK：`provenance = 'vlm_user'` 当且仅当 `extraction_id IS NOT NULL`。
+- The provenance enum is `off` / `bls` / `usda` / `vlm_user` / `manual`. The CHECK constraint goes into the first version of the schema (C-5).
+- For manual input, `nutrient_records.extraction_id` is null and no extraction row is created.
+- An additional CHECK: `provenance = 'vlm_user'` if and only if `extraction_id IS NOT NULL`.
 
-## 后果
+## Consequences
 
-- PRD 第 3 节的 provenance 列表同步修改。
-- 对外输出按 provenance 过滤时，`manual` 与 `vlm_user` 在许可上同属自有数据。
+- The provenance list in PRD section 3 is updated to match.
+- When output is filtered by provenance, `manual` and `vlm_user` both count as our own data for licensing.

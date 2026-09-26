@@ -1,14 +1,14 @@
-# ADR 0007：MVP 不打包 USDA
+# ADR 0007: No USDA data bundled in the MVP
 
-- 状态：已接受
-- 日期：2026-09-26
-- 对应决策：D6
+- Status: Accepted
+- Date: 2026-09-26
+- Decision: D6
 
-## 决策
+## Decision
 
-MVP 不打包 USDA FoodData Central Foundation Foods。基础食材只用 BLS（阶段 2）。
+The MVP does not bundle USDA FoodData Central Foundation Foods. BLS is the only source for basic foods (phase 2).
 
-## 后果
+## Consequences
 
-- 少一个许可来源，合规负担更小。`nutrients.yaml` 里仍然保留 USDA nutrient ID 映射列，将来需要时可以直接接入。
-- 阶段 2 结束时再评估一次。
+- One fewer license source means less compliance work. `nutrients.yaml` still keeps the USDA nutrient ID mapping column, so USDA data can be added later.
+- Re-evaluate at the end of phase 2.
