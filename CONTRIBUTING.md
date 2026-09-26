@@ -111,3 +111,25 @@ The repository is public.
 - **Shared contract PRs first**: Hannes drafts the shared contracts (data structures first) and mica reviews them. Contract PRs get review priority because they are on the critical path.
 - **Progress sync**: one or two Google Meet calls every weekend.
 - **New decisions**: open an ADR PR first; code follows only after both of us approve it.
+
+## 9. Development setup
+
+Toolchain versions follow ADR 0023; Flutter is managed with FVM (ADR 0024).
+
+1. Install [FVM](https://fvm.app/) (installs to `~/fvm/bin`, no sudo) and add it to `PATH`.
+2. In the repository root, run `fvm install`. This installs the Flutter version pinned in `.fvmrc`.
+3. Install JDK 17 and the Android SDK command-line tools, then set `JAVA_HOME` and `ANDROID_HOME` and accept the SDK licenses (`sdkmanager --licenses`). The first Android build downloads the SDK platforms it needs.
+4. Copy `secrets.example.json` to `secrets.json` (ignored by git) and fill in your values; `CONTRIBUTOR` is your GitHub username. Real values come from the password manager.
+
+Common commands (run in `app/`):
+
+| Purpose | Command |
+| --- | --- |
+| Install dependencies | `fvm flutter pub get` |
+| Regenerate localizations | `fvm flutter gen-l10n` |
+| Static analysis | `fvm flutter analyze` |
+| Tests | `fvm flutter test` |
+| Debug build (Android) | `fvm flutter build apk --debug` |
+| Run with secrets | `fvm flutter run --dart-define-from-file=../secrets.json` |
+
+UI strings go into both `app/lib/l10n/app_en.arb` and `app/lib/l10n/app_zh.arb` (ADR 0004); the generated files under `app/lib/generated/l10n/` are committed and never edited by hand.
