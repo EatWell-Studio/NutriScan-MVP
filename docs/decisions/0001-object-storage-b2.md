@@ -1,35 +1,35 @@
-# ADR 0001：对象存储用 Backblaze B2 EU
+# ADR 0001: Object storage on Backblaze B2 (EU)
 
-- 状态：已接受，P0-6 实测通过后生效
-- 日期：2026-09-26
-- 对应决策：D3
+- Status: Accepted, effective once the P0-6 tests pass
+- Date: 2026-09-26
+- Decision: D3
 
-## 背景
+## Context
 
-F3 需要一个 EU 区域、S3 兼容的对象存储桶，用来存放唯一不可再生的资产（照片与 raw JSON）。"只增不删"要由凭证和存储端来保证，不能靠代码自觉。
+F3 needs an S3-compatible object storage bucket in an EU region. It will hold the only non-reproducible assets: photos and raw JSON. The storage and credentials must guarantee that objects are only ever added, never deleted. Code discipline is not enough.
 
-## 决策
+## Decision
 
-- 使用 Backblaze B2，EU Central 区域，走 S3 兼容接口。
-- 桶保留所有文件版本。
-- 每位开发者一把独立的 application key，只授予写入所需的最小权限（不含 `deleteFiles`，也不含修改桶设置的权限），可以单独吊销。
-- Cloudflare R2、Hetzner 不再深入评估。B2 实测通过就定下来；实测不通过，再回到本 ADR 重新选。
+- Use Backblaze B2 in the EU Central region, through its S3-compatible API.
+- The bucket keeps all file versions.
+- Each developer gets their own application key with only the minimum permissions needed to write. The key has no `deleteFiles` and no permission to change bucket settings, and each key can be revoked on its own.
+- Do not spend more time evaluating Cloudflare R2 or Hetzner. If B2 passes the tests, this decision is final. If it fails, reopen this ADR.
 
-## P0-6 实测（待补）
+## P0-6 test results (to be filled in)
 
-| # | 实测项 | 预期 | 结果 |
+| # | Test | Expected | Result |
 | --- | --- | --- | --- |
-| 1 | 用只写 key 删除对象 | 被拒 | |
-| 2 | 同名 PUT | 生成新版本，旧版本仍在（用主 key 列出版本确认） | |
-| 3 | 用只写 key 执行 hide（B2 原生 hide，或不带版本号的 S3 DELETE） | 记录实际行为。hide 可能只需要写权限：若能执行，泄露的 key 可以隐藏文件（但旧版本仍在），要写进风险 | |
-| 4 | 用只写 key 修改生命周期规则 | 被拒（生命周期规则可以清除旧版本，必须拿不到这个权限） | |
-| 5 | 吊销其中一把 key | 另一把不受影响 | |
+| 1 | Delete an object with the write-only key | Rejected | |
+| 2 | PUT to an existing name | A new version is created and the old version remains (confirm by listing versions with the master key) | |
+| 3 | Hide a file with the write-only key (native B2 hide, or an S3 DELETE without a version ID) | Record the actual behavior. Hide may need only write permission. If it works, a leaked key could hide files (older versions still remain); record this as a risk | |
+| 4 | Change lifecycle rules with the write-only key | Rejected (lifecycle rules can purge old versions, so this key must not have that permission) | |
+| 5 | Revoke one of the keys | The other key is unaffected | |
 
-## 后果
+## Consequences
 
-- MVP 期间只写 key 编进两位开发者自己的 App 构建；泄露的最坏情况是有人往桶里写垃圾，已有数据不会丢失。
-- 对外分发前，改为由服务端代理签发预签名 URL（ADR 0015），客户端不再持有 key。
+- During the MVP, the write-only key is compiled into each developer's own app build. If a key leaks, the worst case is someone writing junk into the bucket. Existing data is not lost.
+- Before any external distribution, the server-side proxy issues presigned URLs instead (ADR 0015), and clients no longer hold a key.
 
-## 参考
+## References
 
-- P0-6 实测时补上 B2 官方文档里 application key 权限与文件版本的链接。
+- During P0-6, add links to the official B2 docs on application key capabilities and file versions.

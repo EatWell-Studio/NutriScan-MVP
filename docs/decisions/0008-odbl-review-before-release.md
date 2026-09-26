@@ -1,14 +1,14 @@
-# ADR 0008：ODbL 影响评估放到上架前
+# ADR 0008: ODbL review before release
 
-- 状态：已接受
-- 日期：2026-09-26
-- 对应决策：D7
+- Status: Accepted
+- Date: 2026-09-26
+- Decision: D7
 
-## 决策
+## Decision
 
-请人评估 ODbL share-alike 对本项目的实际影响，放在任何形式的上架或对外发布数据（阶段 5 的 dump / API）之前。MVP 与演示不阻塞。
+Have someone review what ODbL share-alike actually means for this project before any store release or public data release (the phase 5 dump or API). This does not block the MVP or the demo.
 
-## 后果
+## Consequences
 
-- 演示时 App 会展示 OFF 数据，所以 App 内要有 OFF（ODbL）数据来源署名（P0-7）。
-- 代码许可证（D16）与数据许可相互独立，见 DEV_PLAN 7.3。
+- The demo shows OFF data, so the app must attribute Open Food Facts (ODbL) as a data source (P0-7).
+- The code license (D16) is independent of data licenses; see [DEV_PLAN §7.3](../DEV_PLAN.en.md).

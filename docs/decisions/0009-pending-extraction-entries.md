@@ -1,19 +1,19 @@
-# ADR 0009：离线未命中先记账
+# ADR 0009: Log offline misses first
 
-- 状态：已接受（数据模型）；界面推到演示之后
-- 日期：2026-09-26
-- 对应决策：D8
+- Status: Accepted (data model). The UI is deferred until after the demo.
+- Date: 2026-09-26
+- Decision: D8
 
-## 背景
+## Context
 
-PRD 要求离线时照片先存本地、联网后再提取，但没说这段时间里吃的东西怎么记。
+The PRD says photos are stored locally while offline and extracted once back online. It does not say how to log what the user eats in the meantime.
 
-## 决策
+## Decision
 
-- 数据模型现在就支持：`log_entries.nutrient_record_id` 可以为空，表示"待提取"；对应的 `extractions.status = 'pending'`。
-- 当日汇总不把待提取的条目计入合计，而是单独给出条数。
-- 待提取列表、联网后逐条进入确认屏的界面（P1-15）推到演示之后。演示前离线未命中时：照片与待提取条目照常写入，界面只提示"已保存，联网后处理"。
+- The data model supports this now. `log_entries.nutrient_record_id` may be null, which marks a pending extraction, and the matching `extractions.status` is `'pending'`.
+- The daily summary leaves pending extraction entries out of the totals and shows how many there are.
+- The UI for listing pending extractions and confirming them one by one once online (P1-15) comes after the demo. Before the demo, an offline miss still writes the photos and the pending entry, and the UI only says "Saved, will be processed when online".
 
-## 后果
+## Consequences
 
-- 表结构一次到位，演示后补界面时不需要迁移。
+- The schema is complete up front, so adding the UI after the demo needs no migration.

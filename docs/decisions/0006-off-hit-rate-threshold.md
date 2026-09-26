@@ -1,16 +1,16 @@
-# ADR 0006：OFF 命中率阈值与样本量
+# ADR 0006: OFF hit-rate thresholds and sample size
 
-- 状态：已接受
-- 日期：2026-09-26
-- 对应决策：D5
+- Status: Accepted
+- Date: 2026-09-26
+- Decision: D5
 
-## 决策
+## Decision
 
-- 阈值不变：命中率 ≥ 60% 时 F1 优先，< 30% 时 F2 优先。
-- 样本扩大到 30 个以上条码，从购物小票里找（P0-1），覆盖 Rewe / Lidl / Kaufland / Alnatura 自有品牌和亚洲商品。
-- "命中"指 `nutriments` 七项核心字段齐全；只有名字和照片、`nutriments` 为空的条目算未命中。
+- The thresholds stay the same: F1 takes priority at a hit rate ≥ 60%, F2 takes priority below 30%.
+- The sample grows to 30+ barcodes taken from shopping receipts (P0-1). It covers Rewe, Lidl, Kaufland and Alnatura own brands, plus Asian products.
+- A "hit" means all seven core `nutriments` fields are present. Entries with only a name and photos, or with empty `nutriments`, count as misses.
 
-## 后果
+## Consequences
 
-- 两条线并行之后，命中率不再影响演示前的顺序，主要用于演示后的优先级，以及挑选演示用的"OFF 命中 / 未收录"商品。
-- 结果写入 `docs/notes/off-hit-rate.md`。
+- With two tracks running in parallel, the hit rate no longer affects the pre-demo order. It mainly sets post-demo priorities and helps pick the demo products: one found in OFF and one not in OFF.
+- Results go into `docs/notes/off-hit-rate.md`.

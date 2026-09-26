@@ -1,15 +1,15 @@
-# ADR 0013：Riverpod + drift
+# ADR 0013: Riverpod + drift
 
-- 状态：已接受
-- 日期：2026-09-26
-- 对应决策：D12
+- Status: Accepted
+- Date: 2026-09-26
+- Decision: D12
 
-## 决策
+## Decision
 
-- 状态管理用 Riverpod。
-- 本地数据库用 drift（SQLite）：类型安全、迁移可测、支持内存库单测、可以写原生 SQL 触发器。
-- UI 不直接访问 drift，只经 repository 层（PRD 编码规范）。
+- State management uses Riverpod.
+- The local database uses drift (SQLite). It is type-safe, has testable migrations, supports in-memory databases for unit tests, and allows native SQL triggers.
+- The UI never touches drift directly and goes only through the repository layer (PRD coding conventions).
 
-## 后果
+## Consequences
 
-- 迁移测试依赖 drift 的 schema 快照（`drift_dev schema dump`），每次表结构变更都要提交新快照（CONTRIBUTING 第 5 节）。
+- Migration tests rely on drift schema snapshots (`drift_dev schema dump`). Every schema change commits a new snapshot (CONTRIBUTING section 5).

@@ -1,42 +1,47 @@
-# 架构决策记录（ADR）
+# Architecture Decision Records (ADRs)
 
-每个已定的设计决策一条，编号递增、不复用。决策变了就新写一条，把旧的状态改为"已被 ADR NNNN 取代"，不直接改写旧 ADR 的决策内容（实测结果、评测结果这类"待补"小节除外）。
+One record per decided design question. Numbers increase and are never reused. When a decision changes, write a new ADR and set the old one's status to "Superseded by ADR NNNN". Do not rewrite an old ADR's decision. Two exceptions: sections marked "to be filled in" (test and evaluation results), and ADRs whose introducing PR has not been merged yet, which may still be edited in place.
 
-新的设计决策先开 ADR 的 PR，两人都同意后再写代码（见 [CONTRIBUTING.md](../../CONTRIBUTING.md)）。
+Open an ADR PR before writing code for any new design decision, and start coding only after both developers agree (see [CONTRIBUTING.md](../../CONTRIBUTING.md)).
 
-## 索引
+## Index
 
-| ADR | 决策 | 状态 |
+| ADR | Decision | Status |
 | --- | --- | --- |
-| [0001](./0001-object-storage-b2.md) | D3 对象存储用 Backblaze B2 EU | 已接受，待 P0-6 实测 |
-| [0002](./0002-vlm-model-selection.md) | D14 VLM 型号选型流程与标准 | 已接受（流程），型号待评测 |
-| [0003](./0003-mistral-eval-only.md) | D15 Mistral 只进评测脚本 | 已接受 |
-| [0004](./0004-ui-language.md) | D2 界面语言：中文 + 英文 | 已接受 |
-| [0005](./0005-nutrient-key-naming.md) | D4 营养素内部主键命名 | 已接受 |
-| [0006](./0006-off-hit-rate-threshold.md) | D5 OFF 命中率阈值与样本量 | 已接受 |
-| [0007](./0007-no-usda-in-mvp.md) | D6 MVP 不打包 USDA | 已接受 |
-| [0008](./0008-odbl-review-before-release.md) | D7 ODbL 评估放到上架前 | 已接受 |
-| [0009](./0009-pending-extraction-entries.md) | D8 离线未命中先记账（数据模型） | 已接受 |
-| [0010](./0010-provenance-manual.md) | D9 provenance 增加 `manual` | 已接受 |
-| [0011](./0011-photo-original-and-derived.md) | D10 原图与派生图都存、去 EXIF | 已接受 |
-| [0012](./0012-bucket-object-layout.md) | D11 桶对象布局 | 已接受 |
-| [0013](./0013-riverpod-drift.md) | D12 Riverpod + drift | 已接受 |
-| [0014](./0014-secrets-and-api-keys.md) | D13 密钥与 API key 管理 | 已接受 |
-| [0015](./0015-server-proxy-milestone.md) | D17 服务端代理里程碑 | 已接受 |
+| [0001](./0001-object-storage-b2.md) | D3 Object storage on Backblaze B2 (EU) | Accepted, pending P0-6 tests |
+| [0002](./0002-vlm-model-selection.md) | D14 VLM model selection process and criteria | Accepted (process); model pending evaluation |
+| [0003](./0003-mistral-eval-only.md) | D15 Mistral only in the evaluation script | Accepted |
+| [0004](./0004-ui-language.md) | D2 UI language: Chinese + English | Accepted |
+| [0005](./0005-nutrient-key-naming.md) | D4 Internal nutrient key naming | Accepted |
+| [0006](./0006-off-hit-rate-threshold.md) | D5 OFF hit-rate thresholds and sample size | Accepted |
+| [0007](./0007-no-usda-in-mvp.md) | D6 No USDA data bundled in the MVP | Accepted |
+| [0008](./0008-odbl-review-before-release.md) | D7 ODbL review before release | Accepted |
+| [0009](./0009-pending-extraction-entries.md) | D8 Log offline misses first (data model) | Accepted |
+| [0010](./0010-provenance-manual.md) | D9 Add `manual` to provenance | Accepted |
+| [0011](./0011-photo-original-and-derived.md) | D10 Keep original and derived images, strip EXIF | Accepted |
+| [0012](./0012-bucket-object-layout.md) | D11 Bucket object layout | Accepted |
+| [0013](./0013-riverpod-drift.md) | D12 Riverpod + drift | Accepted |
+| [0014](./0014-secrets-and-api-keys.md) | D13 Secrets and API key management | Accepted |
+| [0015](./0015-server-proxy-milestone.md) | D17 Server-side proxy milestone | Accepted |
+| [0016](./0016-app-id.md) | D1 App name and package name | Accepted |
+| [0017](./0017-code-ownership.md) | D18 Code ownership | Accepted |
+| [0018](./0018-collaborator-is-second-user.md) | D19 The collaborator counts as the second real user | Accepted |
+| [0019](./0019-android-first-demo.md) | D20 Android-first demo, iOS afterwards | Accepted |
+| [0020](./0020-claude-access.md) | D21 How we use Claude: subscriptions for development, API later | Accepted (development); API access open |
 
-待定、定下后补 ADR：D1（包名）、D16（代码许可证与贡献条款）。
+Still open (an ADR follows once decided): D16 (code license and contribution terms).
 
-## 模板
+## Template
 
 ```markdown
-# ADR NNNN：标题
+# ADR NNNN: Title
 
-- 状态：提议中 / 已接受 / 已被 ADR NNNN 取代
-- 日期：YYYY-MM-DD
-- 对应决策：Dn
+- Status: Proposed / Accepted / Superseded by ADR NNNN
+- Date: YYYY-MM-DD
+- Decision: Dn
 
-## 背景
-## 决策
-## 后果
-## 参考
+## Context
+## Decision
+## Consequences
+## References
 ```
