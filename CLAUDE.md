@@ -17,7 +17,7 @@ Working rules for Claude Code in this repository. Both developers' Claude Code s
 1. Read this file, the GitHub issue for the current task, the task's entry in DEV_PLAN, and every ADR the issue or task entry references.
 2. Work on that one task only; do not widen the scope. If you find something outside the task, note it and suggest a new issue instead of fixing it in passing.
 3. Do not modify directories owned by the other developer (Track A: Hannes, Track B: mica; see `.github/CODEOWNERS`, CONTRIBUTING §4 and the issue assignees) unless the issue explicitly says so. If someone else needs to act, suggest opening an issue.
-4. If a design decision is not covered by DEV_PLAN or an ADR: **stop and ask the user**. Do not decide it yourself.
+4. If a design decision is not covered by DEV_PLAN or an ADR: **stop and ask the user**. Do not decide it yourself. Once the user decides, follow the ADR workflow below.
 
 ## Hard rules
 
@@ -34,10 +34,19 @@ All 10 rules in PRD §8 apply. In addition:
 - **Photos**: bake the EXIF orientation into the pixels, then strip all EXIF (including GPS) before writing to disk.
 - **Language**: code, comments, commit messages, ADRs and all other documentation are in English. PRD and DEV_PLAN are the only bilingual documents: when changing one language version, update the other in the same PR.
 
+## ADRs
+
+- Follow CONTRIBUTING §2 "ADR workflow". A decision that affects both developers or is hard to undo gets an ADR **before** any code.
+- The ADR goes into its **own PR**: one `docs:` commit adding the ADR with status `Proposed` and its row in `docs/decisions/README.md`. Set the status to `Accepted` in that PR once both developers agree.
+- Never add code commits to an ADR PR after it is approved ("Dismiss stale approvals" would dismiss the approval). Code goes into a separate PR whose description says `Implements ADR 00NN`.
+- Decisions that affect only the current task and are easy to undo need no ADR; explain them in the PR description.
+- Only if the user confirms that both developers already agreed may the ADR share a PR with code, as the first and separate commit.
+
 ## Pull requests
 
 - Open PRs against `main` with the PR template filled in.
 - **Always request a review from the other member explicitly**: check the author with `gh api user --jq .login`; if it is `hannesgao`, request `hyhcrh`, otherwise request `hannesgao` (e.g. `gh pr create --reviewer hyhcrh`). CODEOWNERS does not request a review when the author owns every touched directory, so never rely on it.
+- **When reviewing a PR**, follow CONTRIBUTING §2 "Reviewing a PR": go through the checklist, run the checks locally, prefix every comment with `blocking:` / `suggestion:` / `nit:` / `question:`, and write the review summary in the given format.
 
 ## Commits
 
